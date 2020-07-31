@@ -106,9 +106,15 @@ public:
      * padded with 1's.  Thus, if our contents are $$[2,3]$$, then
      * a reference to dimension 2 (these are zero-based indexing) converts
      * our contents to $$[2,3,1]$$.
-     * Throws an exception if the argument is negative.
+     * Throws an exception if the argument is bigger tha maxIndex.
      */
     indexType& operator[](indexType i);
+    /**
+     * Return a reference to the ith dimension.
+     * Throws an exception if the argument is bigger tha maxIndex or length.
+     */
+    indexType
+    getAt(indexType i, bool checkLength = true);
     /**
      * Get the number of currently allocated dimensions.
      */
@@ -151,7 +157,7 @@ public:
      * the class.
      */
     indexType
-    getDimensionLength(sizeType arg) const;
+    getDimensionLength(indexType arg) const;
     /**
      * A synonym for (*this)[dim] = len.
      */

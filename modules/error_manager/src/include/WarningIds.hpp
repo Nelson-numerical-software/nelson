@@ -31,6 +31,12 @@
 //=============================================================================
 namespace Nelson {
 //=============================================================================
+#define WARNING_COLON_ARRAY_AS_SCALAR L"Nelson:colon:array-as-scalar"
+#define WARNING_MATIO_TYPE_NOT_SUPPORTED L"Nelson:matio:type-not-supported"
+#define WARNING_RANK_DEFICIENT_MATRIX L"Nelson:rankDeficientMatrix"
+#define WARNING_NEARLY_SINGULAR_MATRIX L"Nelson:nearlySingularMatrix"
+#define WARNING_IMAGINARY_PART_IGNORED L"Nelson:imaginaryPartIgnored"
+//=============================================================================
 typedef enum
 {
     DISABLED,

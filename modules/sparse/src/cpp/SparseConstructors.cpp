@@ -41,8 +41,7 @@ SparseConstructor(indexType m, indexType n)
         Eigen::SparseMatrix<double, 0, signedIndexType>* spmat
             = new Eigen::SparseMatrix<double, 0, signedIndexType>(m, n);
         res = ArrayOf(NLS_DOUBLE, dims, (void*)spmat, true);
-    } catch (const std::bad_alloc& e) {
-        e.what();
+    } catch (const std::bad_alloc&) {
         Error(ERROR_MEMORY_ALLOCATION);
     }
     return res;
@@ -77,6 +76,10 @@ SparseConstructor(ArrayOf I, ArrayOf J, ArrayOf V)
     int istride = 0, jstride = 0, vstride = 0;
     size_t olen = 0;
     CheckIJV(I.getLength(), J.getLength(), V.getLength(), istride, jstride, vstride, olen);
+    if (I.isEmpty() || J.isEmpty() || V.isEmpty()) {
+        Dimensions dim(0, 0);
+        return ArrayOf(NLS_DOUBLE, dim, nullptr, true);
+    }
     // Calculate the number of rows in the matrix
     auto* ip = (indexType*)I.getDataPointer();
     indexType rows = 0;
@@ -122,8 +125,9 @@ SparseConstructor(ArrayOf I, ArrayOf J, ArrayOf V, indexType m, indexType n, ind
     case NLS_LOGICAL: {
         Eigen::SparseMatrix<logical, 0, signedIndexType>* spmat
             = (Eigen::SparseMatrix<logical, 0, signedIndexType>*)res.getSparseDataPointer();
-        if (nnz >= (indexType)spmat->nonZeros()) {
-            spmat->reserve(nnz);
+        indexType nonZeros = (indexType)spmat->nonZeros();
+        if (nnz >= nonZeros) {
+            spmat->reserve(nnz - nonZeros);
             spmat->finalize();
             spmat->makeCompressed();
         } else {
@@ -145,8 +149,9 @@ SparseConstructor(ArrayOf I, ArrayOf J, ArrayOf V, indexType m, indexType n, ind
     case NLS_DCOMPLEX: {
         Eigen::SparseMatrix<doublecomplex, 0, signedIndexType>* spmat
             = (Eigen::SparseMatrix<doublecomplex, 0, signedIndexType>*)res.getSparseDataPointer();
-        if (nnz >= (indexType)spmat->nonZeros()) {
-            spmat->reserve(nnz);
+        indexType nonZeros = (indexType)spmat->nonZeros();
+        if (nnz >= nonZeros) {
+            spmat->reserve(nnz - nonZeros);
             spmat->finalize();
             spmat->makeCompressed();
         } else {

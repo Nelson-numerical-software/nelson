@@ -23,6 +23,7 @@
 // License along with this program. If not, see <http://www.gnu.org/licenses/>.
 // LICENCE_BLOCK_END
 //=============================================================================
+#include "GetExternalModulesPath.hpp"
 #include "NelsonGateway.hpp"
 #include "addmoduleBuiltin.hpp"
 #include "getmodulesBuiltin.hpp"
@@ -30,24 +31,44 @@
 #include "modulepathBuiltin.hpp"
 #include "removemoduleBuiltin.hpp"
 #include "requiremoduleBuiltin.hpp"
+#include "toolboxdirBuiltin.hpp"
+#include "usermodulesdirBuiltin.hpp"
+#include "semverBuiltin.hpp"
 //=============================================================================
 using namespace Nelson;
 //=============================================================================
 const std::wstring gatewayName = L"modules_manager";
 //=============================================================================
 static const nlsGateway gateway[]
-    = { { "removemodule", Nelson::ModulesManagerGateway::removemoduleBuiltin, 0, 1 },
-          { "addmodule", Nelson::ModulesManagerGateway::addmoduleBuiltin, 0, 2 },
-          { "modulepath", Nelson::ModulesManagerGateway::modulepathBuiltin, 1, 3 },
-          { "getmodules", Nelson::ModulesManagerGateway::getmodulesBuiltin, 1, 1 },
-          { "ismodule", Nelson::ModulesManagerGateway::ismoduleBuiltin, 1, 1 },
-          { "requiremodule", Nelson::ModulesManagerGateway::requiremoduleBuiltin, 1, 1 } };
+    = { { "removemodule", (void*)Nelson::ModulesManagerGateway::removemoduleBuiltin, 0, 1,
+            CPP_BUILTIN_WITH_EVALUATOR },
+          { "addmodule", (void*)Nelson::ModulesManagerGateway::addmoduleBuiltin, 0, 2,
+              CPP_BUILTIN_WITH_EVALUATOR },
+          { "modulepath", (void*)Nelson::ModulesManagerGateway::modulepathBuiltin, 1, 3 },
+          { "getmodules", (void*)Nelson::ModulesManagerGateway::getmodulesBuiltin, 1, 1 },
+          { "ismodule", (void*)Nelson::ModulesManagerGateway::ismoduleBuiltin, 1, 1 },
+          { "toolboxdir", (void*)Nelson::ModulesManagerGateway::toolboxdirBuiltin, 1, 1 },
+          { "usermodulesdir", (void*)Nelson::ModulesManagerGateway::usermodulesdirBuiltin, 1, 0 },
+          { "requiremodule", (void*)Nelson::ModulesManagerGateway::requiremoduleBuiltin, 1, 1 },
+          { "semver", (void*)Nelson::ModulesManagerGateway::semverBuiltin, 1, 2 } };
 //=============================================================================
-NLSGATEWAYFUNC(gateway)
+NLSGATEWAYNAME()
+//=============================================================================
+static bool
+initializeModulesManagerModule(Nelson::Evaluator* eval)
+{
+    return CreateIfRequiredExternalModulesPath();
+}
+//=============================================================================
+static bool
+finishModulesManagerModule(Nelson::Evaluator* eval)
+{
+    return true;
+}
+//=============================================================================
+NLSGATEWAYFUNCEXTENDED(gateway, (void*)initializeModulesManagerModule)
 //=============================================================================
 NLSGATEWAYINFO(gateway)
 //=============================================================================
-NLSGATEWAYREMOVE(gateway)
-//=============================================================================
-NLSGATEWAYNAME()
+NLSGATEWAYREMOVEEXTENDED(gateway, (void*)finishModulesManagerModule)
 //=============================================================================

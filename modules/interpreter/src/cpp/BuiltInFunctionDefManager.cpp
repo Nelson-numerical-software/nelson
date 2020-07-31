@@ -67,8 +67,9 @@ BuiltInFunctionDefManager::add(FuncPtr ptr)
 }
 //=============================================================================
 bool
-BuiltInFunctionDefManager::add(const std::string& name, BuiltInFuncPtr fptr, int argc_in,
-    int argc_out, const std::wstring& dynlibname, const std::wstring& modulename)
+BuiltInFunctionDefManager::add(const std::string& name, void* fptr, int argc_in, int argc_out,
+    const std::wstring& dynlibname, const std::wstring& modulename, size_t builtinPrototype,
+    bool interleavedComplex)
 {
     BuiltInFunctionDef* f2def;
     try {
@@ -84,7 +85,9 @@ BuiltInFunctionDefManager::add(const std::string& name, BuiltInFuncPtr fptr, int
         f2def->argCount = argc_in;
         f2def->name = name;
         f2def->fptr = fptr;
+        f2def->interleavedComplex = interleavedComplex;
         f2def->arguments = std::move(args);
+        f2def->builtinPrototype = builtinPrototype;
         return add(f2def);
     }
     return false;
@@ -134,7 +137,7 @@ BuiltInFunctionDefManager::remove(BuiltInFunctionDef* ptr)
 }
 //=============================================================================
 bool
-BuiltInFunctionDefManager::remove(BuiltInFuncPtr fptr)
+BuiltInFunctionDefManager::remove(void* fptr)
 {
     bool res = false;
     for (size_t k = 0; k < builtinVector.size(); k++) {

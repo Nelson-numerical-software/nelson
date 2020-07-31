@@ -46,7 +46,7 @@ Nelson::ElementaryFunctionsGateway::complexBuiltin(
         retval = OverloadFunction(eval, nLhs, argIn, "complex", bSuccess);
     }
     if (!bSuccess) {
-        if (argIn[0].isSparse() || argIn[0].isCell() || argIn[0].isHandle() || argIn[0].isStruct()
+        if (argIn[0].isCell() || argIn[0].isHandle() || argIn[0].isStruct()
             || argIn[0].isClassStruct()) {
             retval = OverloadFunction(eval, nLhs, argIn, "complex", bSuccess);
             if (bSuccess) {

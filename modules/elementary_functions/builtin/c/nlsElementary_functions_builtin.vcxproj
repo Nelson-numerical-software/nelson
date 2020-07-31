@@ -95,7 +95,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;NLSELEMENTARY_FUNCTIONS_BUILTIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)modules/elementary_functions/builtin/include;$(SolutionDir)modules/elementary_functions/src/include;$(SolutionDir)modules/api_nelson/src/include;$(SolutionDir)modules/interpreter/src/include;$(SolutionDir)modules/types/src/include;$(SolutionDir)modules/stream_manager/src/include;$(SolutionDir)modules/overload/src/include;$(SolutionDir)modules/linear_algebra/src/include;$(SolutionDir)modules/error_manager/src/include;$(SolutionDir)modules/i18n/src/include;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Boost</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)modules/elementary_functions/builtin/include;$(SolutionDir)modules/elementary_functions/src/include;$(SolutionDir)modules/api_nelson/src/include;$(SolutionDir)modules/interpreter/src/include;$(SolutionDir)modules/types/src/include;$(SolutionDir)modules/stream_manager/src/include;$(SolutionDir)modules/overload/src/include;$(SolutionDir)modules/linear_algebra/src/include;$(SolutionDir)modules/error_manager/src/include;$(SolutionDir)modules/i18n/src/include;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Boost;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Eigen</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <DisableSpecificWarnings>4190</DisableSpecificWarnings>
     </ClCompile>
@@ -113,7 +113,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;NLSELEMENTARY_FUNCTIONS_BUILTIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)modules/elementary_functions/builtin/include;$(SolutionDir)modules/elementary_functions/src/include;$(SolutionDir)modules/api_nelson/src/include;$(SolutionDir)modules/interpreter/src/include;$(SolutionDir)modules/types/src/include;$(SolutionDir)modules/stream_manager/src/include;$(SolutionDir)modules/overload/src/include;$(SolutionDir)modules/linear_algebra/src/include;$(SolutionDir)modules/error_manager/src/include;$(SolutionDir)modules/i18n/src/include;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Boost</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)modules/elementary_functions/builtin/include;$(SolutionDir)modules/elementary_functions/src/include;$(SolutionDir)modules/api_nelson/src/include;$(SolutionDir)modules/interpreter/src/include;$(SolutionDir)modules/types/src/include;$(SolutionDir)modules/stream_manager/src/include;$(SolutionDir)modules/overload/src/include;$(SolutionDir)modules/linear_algebra/src/include;$(SolutionDir)modules/error_manager/src/include;$(SolutionDir)modules/i18n/src/include;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Boost;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Eigen</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <DisableSpecificWarnings>4190</DisableSpecificWarnings>
     </ClCompile>
@@ -133,7 +133,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;NLSELEMENTARY_FUNCTIONS_BUILTIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)modules/elementary_functions/builtin/include;$(SolutionDir)modules/elementary_functions/src/include;$(SolutionDir)modules/api_nelson/src/include;$(SolutionDir)modules/interpreter/src/include;$(SolutionDir)modules/types/src/include;$(SolutionDir)modules/stream_manager/src/include;$(SolutionDir)modules/overload/src/include;$(SolutionDir)modules/linear_algebra/src/include;$(SolutionDir)modules/error_manager/src/include;$(SolutionDir)modules/i18n/src/include;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Boost</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)modules/elementary_functions/builtin/include;$(SolutionDir)modules/elementary_functions/src/include;$(SolutionDir)modules/api_nelson/src/include;$(SolutionDir)modules/interpreter/src/include;$(SolutionDir)modules/types/src/include;$(SolutionDir)modules/stream_manager/src/include;$(SolutionDir)modules/overload/src/include;$(SolutionDir)modules/linear_algebra/src/include;$(SolutionDir)modules/error_manager/src/include;$(SolutionDir)modules/i18n/src/include;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Boost;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Eigen</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <DisableSpecificWarnings>4190</DisableSpecificWarnings>
     </ClCompile>
@@ -155,7 +155,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;NLSELEMENTARY_FUNCTIONS_BUILTIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)modules/elementary_functions/builtin/include;$(SolutionDir)modules/elementary_functions/src/include;$(SolutionDir)modules/api_nelson/src/include;$(SolutionDir)modules/interpreter/src/include;$(SolutionDir)modules/types/src/include;$(SolutionDir)modules/stream_manager/src/include;$(SolutionDir)modules/overload/src/include;$(SolutionDir)modules/linear_algebra/src/include;$(SolutionDir)modules/error_manager/src/include;$(SolutionDir)modules/i18n/src/include;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Boost</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)modules/elementary_functions/builtin/include;$(SolutionDir)modules/elementary_functions/src/include;$(SolutionDir)modules/api_nelson/src/include;$(SolutionDir)modules/interpreter/src/include;$(SolutionDir)modules/types/src/include;$(SolutionDir)modules/stream_manager/src/include;$(SolutionDir)modules/overload/src/include;$(SolutionDir)modules/linear_algebra/src/include;$(SolutionDir)modules/error_manager/src/include;$(SolutionDir)modules/i18n/src/include;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Boost;$(SolutionDir)../NelSon-thirdparty-$(PlatformName)/Eigen</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <DisableSpecificWarnings>4190</DisableSpecificWarnings>
     </ClCompile>
@@ -185,6 +185,8 @@
     <ClCompile Include="..\cpp\eqBuiltin.cpp" />
     <ClCompile Include="..\cpp\expBuiltin.cpp" />
     <ClCompile Include="..\cpp\fixBuiltin.cpp" />
+    <ClCompile Include="..\cpp\fliplrBuiltin.cpp" />
+    <ClCompile Include="..\cpp\flipudBuiltin.cpp" />
     <ClCompile Include="..\cpp\floorBuiltin.cpp" />
     <ClCompile Include="..\cpp\Gateway.cpp" />
     <ClCompile Include="..\cpp\geBuiltin.cpp" />
@@ -202,8 +204,15 @@
     <ClCompile Include="..\cpp\ldivideBuiltin.cpp" />
     <ClCompile Include="..\cpp\leBuiltin.cpp" />
     <ClCompile Include="..\cpp\lengthBuiltin.cpp" />
+    <ClCompile Include="..\cpp\linspaceBuiltin.cpp" />
+    <ClCompile Include="..\cpp\log10Builtin.cpp" />
+    <ClCompile Include="..\cpp\log1pBuiltin.cpp" />
+    <ClCompile Include="..\cpp\log2Builtin.cpp" />
     <ClCompile Include="..\cpp\logBuiltin.cpp" />
     <ClCompile Include="..\cpp\ltBuiltin.cpp" />
+    <ClCompile Include="..\cpp\maxBuiltin.cpp" />
+    <ClCompile Include="..\cpp\meanBuiltin.cpp" />
+    <ClCompile Include="..\cpp\minBuiltin.cpp" />
     <ClCompile Include="..\cpp\minusBuiltin.cpp" />
     <ClCompile Include="..\cpp\mldivideBuiltin.cpp" />
     <ClCompile Include="..\cpp\modBuiltin.cpp" />
@@ -229,8 +238,10 @@
     <ClCompile Include="..\cpp\shortcutandBuiltin.cpp" />
     <ClCompile Include="..\cpp\shortcutorBuiltin.cpp" />
     <ClCompile Include="..\cpp\sizeBuiltin.cpp" />
+    <ClCompile Include="..\cpp\sortBuiltin.cpp" />
     <ClCompile Include="..\cpp\sqrtBuiltin.cpp" />
     <ClCompile Include="..\cpp\subsindexBuiltin.cpp" />
+    <ClCompile Include="..\cpp\sumBuiltin.cpp" />
     <ClCompile Include="..\cpp\swapbytesBuiltin.cpp" />
     <ClCompile Include="..\cpp\timesBuiltin.cpp" />
     <ClCompile Include="..\cpp\transposeBuiltin.cpp" />
@@ -283,6 +294,8 @@
     <ClInclude Include="..\include\eqBuiltin.hpp" />
     <ClInclude Include="..\include\expBuiltin.hpp" />
     <ClInclude Include="..\include\fixBuiltin.hpp" />
+    <ClInclude Include="..\include\fliplrBuiltin.hpp" />
+    <ClInclude Include="..\include\flipudBuiltin.hpp" />
     <ClInclude Include="..\include\floorBuiltin.hpp" />
     <ClInclude Include="..\include\geBuiltin.hpp" />
     <ClInclude Include="..\include\gtBuiltin.hpp" />
@@ -299,8 +312,15 @@
     <ClInclude Include="..\include\ldivideBuiltin.hpp" />
     <ClInclude Include="..\include\leBuiltin.hpp" />
     <ClInclude Include="..\include\lengthBuiltin.hpp" />
+    <ClInclude Include="..\include\linspaceBuiltin.hpp" />
+    <ClInclude Include="..\include\log10Builtin.hpp" />
+    <ClInclude Include="..\include\log1pBuiltin.hpp" />
+    <ClInclude Include="..\include\log2Builtin.hpp" />
     <ClInclude Include="..\include\logBuiltin.hpp" />
     <ClInclude Include="..\include\ltBuiltin.hpp" />
+    <ClInclude Include="..\include\maxBuiltin.hpp" />
+    <ClInclude Include="..\include\meanBuiltin.hpp" />
+    <ClInclude Include="..\include\minBuiltin.hpp" />
     <ClInclude Include="..\include\minusBuiltin.hpp" />
     <ClInclude Include="..\include\mldivideBuiltin.hpp" />
     <ClInclude Include="..\include\modBuiltin.hpp" />
@@ -327,8 +347,10 @@
     <ClInclude Include="..\include\shortcutandBuiltin.hpp" />
     <ClInclude Include="..\include\shortcutorBuiltin.hpp" />
     <ClInclude Include="..\include\sizeBuiltin.hpp" />
+    <ClInclude Include="..\include\sortBuiltin.hpp" />
     <ClInclude Include="..\include\sqrtBuiltin.hpp" />
     <ClInclude Include="..\include\subsindexBuiltin.hpp" />
+    <ClInclude Include="..\include\sumBuiltin.hpp" />
     <ClInclude Include="..\include\swapbytesBuiltin.hpp" />
     <ClInclude Include="..\include\timesBuiltin.hpp" />
     <ClInclude Include="..\include\transposeBuiltin.hpp" />

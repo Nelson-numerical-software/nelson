@@ -50,10 +50,10 @@ powi(T a, T b)
         }
         for (u = (unsigned long)n;;) {
             if (u & 01) {
-                p = scalarInteger_times_scalarInteger<T>(p, x);
+                p = scalar_scalar_integer_times(p, x);
             }
             if (u >>= 1) {
-                x = scalarInteger_times_scalarInteger<T>(x, x);
+                x = scalar_scalar_integer_times(x, x);
             } else {
                 break;
             }
@@ -636,7 +636,8 @@ DotPower(ArrayOf& A, ArrayOf& B, bool& needToOverload)
                 if (B.getDataClass() == NLS_DOUBLE) {
                     bool allIntegerValue = true;
                     auto* ptrB = (double*)B.getDataPointer();
-                    for (indexType k = 0; k < B.getDimensions().getElementCount(); k++) {
+                    indexType elementCount = B.getDimensions().getElementCount();
+                    for (indexType k = 0; k < elementCount; k++) {
                         double v = std::trunc(ptrB[k]);
                         if (v != ptrB[k]) {
                             allIntegerValue = false;
@@ -706,6 +707,7 @@ DotPower(ArrayOf& A, ArrayOf& B, bool& needToOverload)
         return res;
     } break;
     case NLS_LOGICAL:
+    case NLS_GO_HANDLE:
     case NLS_HANDLE:
     case NLS_CELL_ARRAY:
     case NLS_STRING_ARRAY:

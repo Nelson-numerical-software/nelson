@@ -31,8 +31,7 @@
 using namespace Nelson;
 //=============================================================================
 ArrayOfVector
-Nelson::ModulesManagerGateway::getmodulesBuiltin(
-    Evaluator* eval, int nLhs, const ArrayOfVector& argIn)
+Nelson::ModulesManagerGateway::getmodulesBuiltin(int nLhs, const ArrayOfVector& argIn)
 {
     ArrayOfVector retval;
     if (argIn.size() > 1) {
@@ -49,7 +48,7 @@ Nelson::ModulesManagerGateway::getmodulesBuiltin(
         } else {
             Error(ERROR_WRONG_ARGUMENT_1_TYPE_STRING_EXPECTED);
         }
-        if (param.compare(L"reverse") != 0) {
+        if (param != L"reverse") {
             Error(_W("Wrong value for #1 argument, \'reverse\' expected."));
         }
         bReverse = true;

@@ -52,8 +52,7 @@ SparseImagPart(ArrayOf a)
             spmat->makeCompressed();
             void* pRes = (void*)spmat;
             res = ArrayOf(NLS_DOUBLE, a.getDimensions(), pRes, true);
-        } catch (const std::bad_alloc& e) {
-            e.what();
+        } catch (const std::bad_alloc&) {
             Error(ERROR_MEMORY_ALLOCATION);
         }
     } break;
@@ -69,15 +68,16 @@ SparseImagPart(ArrayOf a)
                 for (Eigen::SparseMatrix<doublecomplex, 0, signedIndexType>::InnerIterator it(
                          *spmatSRC, k);
                      it; ++it) {
-                    spmatDST->coeffRef(it.row(), it.col()) = it.value().imag();
+                    if (it.value().imag() != 0.) {
+                        spmatDST->coeffRef(it.row(), it.col()) = it.value().imag();
+                    }
                 }
             }
             spmatDST->finalize();
             spmatDST->makeCompressed();
             void* pRes = (void*)spmatDST;
             res = ArrayOf(NLS_DOUBLE, a.getDimensions(), pRes, true);
-        } catch (const std::bad_alloc& e) {
-            e.what();
+        } catch (const std::bad_alloc&) {
             Error(ERROR_MEMORY_ALLOCATION);
         }
     } break;

@@ -1,6 +1,6 @@
 ![banner](banner_homepage.png)
 
-### Nelson 0.3.10.0
+### Nelson 0.4.7.0
 
 This is an pre-release of Nelson.
 
@@ -18,14 +18,15 @@ Try it !
   * string array (UNICODE supported).
   * integers 8, 16, 32, 64 signed and unsigned: scalar, vector, matrix 2D, N dimensions array.
   * handle objects.
+  * graphic objects (setting properties).
 
-- Fast Fourrier Transformation functions based on FFTW and MKL wrapper. 
+- Fast Fourrier Transformation functions based on FFTW and MKL wrapper,
 
-- SLICOT (Subroutine Library in Systems and Control Theory) interfaces (optional).
+- SLICOT (Subroutine Library in Systems and Control Theory) interfaces (optional),
 
-- Message Passing Interface (MPI): functions for parallel computing.
+- Message Passing Interface (MPI): functions for parallel computing,
 
-- JSON decode/encode data support.
+- JSON decode/encode data support,
 
 - HDF5 high-level functions I/O,
 
@@ -33,19 +34,21 @@ Try it !
 
 - MAT-file compatible load/save workspace,
 
-- RESTful API web service.
+- C MEX API compatibility creates and shares mexFunction,
 
-- Foreign Function Interface C/Fortran.
+- Foreign Function Interface C/Fortran,
 
-- Interfacing C/C++ or Fortran with Nelson (build and load external code on the fly).
+- Interfacing C/C++ or Fortran with Nelson (build and load external code on the fly),
 
-- The QML engine enables nelson programs to display and manipulate graphical content using Qt's QML framework.
+- RESTful API web service,
 
-- Component Object Model (COM) client interface: binary-interface standard for software components on Windows.
+- The QML engine enables nelson programs to display and manipulate graphical content using Qt's QML framework,
 
-- Write/Read xlsx files on Windows using COM.
+- Component Object Model (COM) client interface: binary-interface standard for software components on Windows,
 
-- Embedded Nelson code editor.
+- Write/Read xlsx files on Windows using COM,
+
+- Embedded Nelson code editor,
 
 - Help engine: 
 
@@ -64,10 +67,16 @@ Try it !
 - Nelson cloud:
   Instant access to Nelson anywhere from an web browser. 
 
+- Module skeleton to extend Nelson available here: 
+   - [template macros and builtin](http://github.com/Nelson-numerical-software/module_skeleton),
+   - [basic template macros only](http://github.com/Nelson-numerical-software/module_skeleton_basic).
+
+- Nelson Modules Manager (nmm) : package manager for Nelson
 
 * * *
 
 *   [Changelog](CHANGELOG.md)
+*   [Changelog v0.3.x](CHANGELOG-0.3.x.md)
 *   [Changelog v0.2.x](CHANGELOG-0.2.x.md)
 *   [Changelog v0.1.x](CHANGELOG-0.1.x.md)
 *   [Nelson license](license.md)

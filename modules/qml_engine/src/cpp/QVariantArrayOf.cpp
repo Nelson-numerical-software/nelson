@@ -485,8 +485,7 @@ QVariantToArrayOf(QVariant Q)
                     QmlHandleObject* qmlHandle = nullptr;
                     try {
                         qmlHandle = new QmlHandleObject(qobject);
-                    } catch (const std::bad_alloc& e) {
-                        e.what();
+                    } catch (const std::bad_alloc&) {
                         qmlHandle = nullptr;
                         Error(ERROR_MEMORY_ALLOCATION);
                     }
@@ -516,8 +515,7 @@ QVariantToArrayOf(QVariant Q)
                         QmlHandleObject* qmlHandle = nullptr;
                         try {
                             qmlHandle = new QmlHandleObject(qobj);
-                        } catch (const std::bad_alloc& e) {
-                            e.what();
+                        } catch (const std::bad_alloc&) {
                             qmlHandle = nullptr;
                             Error(ERROR_MEMORY_ALLOCATION);
                         }
@@ -553,8 +551,7 @@ QVariantToArrayOf(QVariant Q)
                         QmlHandleObject* qmlHandle = nullptr;
                         try {
                             qmlHandle = new QmlHandleObject(qobj);
-                        } catch (const std::bad_alloc& e) {
-                            e.what();
+                        } catch (const std::bad_alloc&) {
                             qmlHandle = nullptr;
                             Error(ERROR_MEMORY_ALLOCATION);
                         }
@@ -575,8 +572,7 @@ QVariantToArrayOf(QVariant Q)
         try {
             QObject* obj = qvariant_cast<QObject*>(Q);
             qmlHandle = new QmlHandleObject(obj);
-        } catch (const std::bad_alloc& e) {
-            e.what();
+        } catch (const std::bad_alloc&) {
             qmlHandle = nullptr;
             Error(ERROR_MEMORY_ALLOCATION);
         }
@@ -921,7 +917,8 @@ NelsonTypeToQVariant(ArrayOf A)
         QVariantList qlistVariant;
         Dimensions dimsA = A.getDimensions();
         T* nlsArray = (T*)A.getDataPointer();
-        for (indexType k = 0; k < dimsA.getElementCount(); k++) {
+        indexType elementCount = dimsA.getElementCount();
+        for (indexType k = 0; k < elementCount; k++) {
             QVariant element = QVariant(nlsArray[k]);
             qlistVariant.push_back(element);
         }
@@ -1068,7 +1065,8 @@ ArrayOfToQVariant(ArrayOf A)
                 Dimensions dimsA = A.getDimensions();
                 ArrayOf* cellArray = (ArrayOf*)A.getDataPointer();
                 QVariantList qvariantList;
-                for (indexType k = 0; k < dimsA.getElementCount(); k++) {
+                indexType elementCount = dimsA.getElementCount();
+                for (indexType k = 0; k < elementCount; k++) {
                     qvariantList.push_back(ArrayOfToQVariant(cellArray[k]));
                 }
                 res = qvariantList;
@@ -1099,6 +1097,7 @@ ArrayOfToQVariant(ArrayOf A)
         }
         res = qvariantMap;
     } break;
+    case NLS_GO_HANDLE:
     case NLS_HANDLE:
     case NLS_SCOMPLEX:
     case NLS_DCOMPLEX:

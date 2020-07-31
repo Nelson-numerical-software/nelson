@@ -75,7 +75,7 @@ convertToArrayOf(ArrayOfVector& values, Class classDestination, bool haveThirdAr
     double n, bool mixed)
 {
     ArrayOf value;
-    size_t nbValues;
+    indexType nbValues;
     Dimensions nDims;
     Dimensions dims;
 
@@ -347,7 +347,7 @@ FscanF(FILE* filepointer, const std::string& format, const std::string& encoding
     switch (outType) {
     case AS_STRING: {
         std::wstring strs;
-        for (indexType k = 0; k < values.size(); k++) {
+        for (indexType k = 0; k < (indexType)values.size(); k++) {
             std::wstring str = values[k].getContentAsWideString();
             strs.append(str);
         }
@@ -377,7 +377,8 @@ FscanF(FILE* filepointer, const std::string& format, const std::string& encoding
                 Dimensions dimsValue = value.getDimensions();
                 v.reserve(v.size() + dimsValue.getElementCount());
                 double* ptr = (double*)value.getDataPointer();
-                for (indexType k = 0; k < dimsValue.getElementCount(); k++) {
+                indexType elementCount = dimsValue.getElementCount();
+                for (indexType k = 0; k < elementCount; k++) {
                     v.push_back(ptr[k]);
                 }
             } break;

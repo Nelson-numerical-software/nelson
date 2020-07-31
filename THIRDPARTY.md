@@ -270,3 +270,29 @@ libgit2 is a portable, pure C implementation of the Git core methods.
 
 > https://github.com/libgit2/libgit2/blob/master/COPYING  GPL with LINKING EXCEPTION
 
+
+- semver.c
+
+Semantic version v2.0 parser and render written in ANSI C with zero dependencies.
+
+> https://github.com/h2non/semver.c
+
+> https://github.com/h2non/semver.c/blob/master/LICENSE MIT license
+
+
+- asio
+
+Asio C++ Library
+
+> http://think-async.com/Asio/
+
+> https://github.com/chriskohlhoff/asio/blob/master/asio/COPYING (Boost 1.0)
+
+
+- fifo_map
+
+a FIFO-ordered associative container for C++
+
+> https://github.com/nlohmann/fifo_map
+
+> https://github.com/nlohmann/fifo_map/blob/master/LICENSE.MIT MIT license

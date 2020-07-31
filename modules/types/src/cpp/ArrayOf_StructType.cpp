@@ -24,6 +24,7 @@
 // LICENCE_BLOCK_END
 //=============================================================================
 #include <boost/algorithm/string.hpp>
+#include "nlsConfig.h"
 #include "ArrayOf.hpp"
 #include "Data.hpp"
 #include "Error.hpp"
@@ -99,8 +100,8 @@ ArrayOf::structScalarConstructor(const stringVector& fNames, ArrayOfVector& valu
          */
         indexType length = dims.getElementCount();
         indexType offset = 0;
-        for (sizeType j = 0; j < length; j++) {
-            for (sizeType i = 0; i < (sizeType)fNames.size(); i++) {
+        for (indexType j = 0; j < length; j++) {
+            for (indexType i = 0; i < (indexType)fNames.size(); i++) {
                 ArrayOf rval = values[i];
                 rptr = (const ArrayOf*)rval.dp->getData();
                 qp[offset] = rval;
@@ -122,7 +123,7 @@ ArrayOf::structConstructor(const stringVector& fNames, ArrayOfVector& values)
 {
     const ArrayOf* rptr;
     Dimensions dims;
-    sizeType i, j;
+    indexType i, j;
     ArrayOf* qp = nullptr;
     try {
         if (fNames.size() != values.size()) {
@@ -136,21 +137,21 @@ ArrayOf::structConstructor(const stringVector& fNames, ArrayOfVector& values)
          *  3.  single values.
          */
         bool nonSingularFound = false;
-        for (i = 0; i < (sizeType)values.size(); i++) {
+        for (i = 0; i < (indexType)values.size(); i++) {
             /**
              * Check the type of the entry.  If its a non-cell array, then
              * then ignore this entry.
              */
-            if (values[i].dp->dataClass == NLS_CELL_ARRAY
-                || values[i].dp->dataClass == NLS_STRING_ARRAY) {
+            ArrayOf value = values[i];
+            if (value.dp->dataClass == NLS_CELL_ARRAY || value.dp->dataClass == NLS_STRING_ARRAY) {
                 /**
                  * This is a cell-array, so look for non-scalar cell-arrays.
                  */
-                if (!values[i].isScalar()) {
+                if (!value.isScalar()) {
                     if (!nonSingularFound) {
                         nonSingularFound = true;
-                        dims = values[i].dp->dimensions;
-                    } else if (!dims.equals(values[i].dp->dimensions)) {
+                        dims = value.dp->dimensions;
+                    } else if (!dims.equals(value.dp->dimensions)) {
                         Error(_W("ArrayOf dimensions of non-scalar entries must agree in "
                                  "structure construction."));
                     }
@@ -177,7 +178,7 @@ ArrayOf::structConstructor(const stringVector& fNames, ArrayOfVector& values)
         indexType length = dims.getElementCount();
         indexType offset = 0;
         for (j = 0; j < length; j++)
-            for (i = 0; i < (sizeType)fNames.size(); i++) {
+            for (i = 0; i < (indexType)fNames.size(); i++) {
                 ArrayOf rval = values[i];
                 rptr = (const ArrayOf*)rval.dp->getData();
                 if (rval.dp->dataClass == NLS_CELL_ARRAY
@@ -241,7 +242,6 @@ ArrayOf::getFieldAsList(const std::string& fieldName)
     if (isSparse()) {
         Error(_W("getFieldAsList not supported for sparse arrays."));
     }
-    ArrayOfVector m;
     const ArrayOf* qp = (const ArrayOf*)dp->getData();
     indexType N = getLength();
     indexType fieldCount = dp->fieldNames.size();
@@ -249,8 +249,8 @@ ArrayOf::getFieldAsList(const std::string& fieldName)
     if (ndx < 0) {
         Error(_("Reference to non-existent field") + " " + fieldName);
     }
-    indexType i = 0;
-    for (i = 0; i < N; i++) {
+    ArrayOfVector m;
+    for (indexType i = 0; i < N; i++) {
         m.push_back(qp[i * fieldCount + ndx]);
     }
     return m;
@@ -354,8 +354,14 @@ ArrayOf::insertFieldName(const std::string& fieldName)
     ArrayOf* rp = (ArrayOf*)allocateArrayOf(dp->dataClass, getLength(), names, false);
     std::string classtype = dp->getStructTypeName();
     indexType fN = names.size();
-    for (indexType i = 0; i < fN - 1; i++) {
-        rp[i] = qp[i];
+    if (fN > 1) {
+        ompIndexType nN = (ompIndexType)fN - 1;
+#if defined(_NLS_WITH_OPENMP)
+#pragma omp parallel for
+#endif
+        for (ompIndexType i = 0; i < nN; i++) {
+            rp[i] = qp[i];
+        }
     }
     dp = dp->putData(NLS_STRUCT_ARRAY, dp->dimensions, rp, false, names);
     dp->setStructTypeName(classtype);

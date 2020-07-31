@@ -209,6 +209,15 @@ ArrayOf::summarizeCellEntry(Interface* io) const
             dp->dimensions.printMe(io);
             io->outputMessage(" string]");
         } break;
+        case NLS_GO_HANDLE:
+            if (dp->dimensions.isScalar()) {
+                io->outputMessage("[graphic_object]");
+            } else {
+                io->outputMessage("[");
+                dp->dimensions.printMe(io);
+                io->outputMessage(" graphic_object]");
+            }
+            break;
         case NLS_HANDLE:
             if (dp->dimensions.isScalar()) {
                 io->outputMessage("[handle]");
@@ -380,6 +389,8 @@ emitElement(Interface* io, char* msgBuffer, const void* dp, indexType num, Class
     switch (dcls) {
     case NLS_STRUCT_ARRAY: {
     } break;
+    case NLS_GO_HANDLE: {
+    } break;
     case NLS_HANDLE: {
     } break;
     case NLS_INT8: {
@@ -550,6 +561,10 @@ ArrayOf::printMe(Interface* io) const
     sizeType termWidth = io->getTerminalWidth();
     std::string typeAsText = "";
     switch (dp->dataClass) {
+    case NLS_GO_HANDLE:
+        typeAsText = "  <graphic_object>  ";
+        nominalWidth = 5;
+        break;
     case NLS_HANDLE:
         typeAsText = "  <handle>  ";
         nominalWidth = 5;
@@ -732,7 +747,7 @@ ArrayOf::printMe(Interface* io) const
             while (wdims.inside(dp->dimensions)) {
                 snprintf(msgBuffer, MSGBUFLEN, "(:,:");
                 io->outputMessage(msgBuffer);
-                for (sizeType m = 2; m < dp->dimensions.getLength(); m++) {
+                for (indexType m = 2; m < dp->dimensions.getLength(); m++) {
                     snprintf(msgBuffer, MSGBUFLEN, ",%d", static_cast<int>(wdims[m]) + 1);
                     io->outputMessage(msgBuffer);
                 }

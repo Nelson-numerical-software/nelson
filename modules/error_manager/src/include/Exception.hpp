@@ -42,6 +42,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+//=============================================================================
 #pragma once
 //=============================================================================
 #include <cstring>
@@ -157,8 +158,7 @@ new_with_exception(size_t len, bool initializeToZero = true)
             if (initializeToZero) {
                 memset(ptr, 0, sizeof(T) * len);
             }
-        } catch (const std::bad_alloc& e) {
-            e.what();
+        } catch (const std::bad_alloc&) {
             ptr = nullptr;
             Error(ERROR_MEMORY_ALLOCATION);
         }

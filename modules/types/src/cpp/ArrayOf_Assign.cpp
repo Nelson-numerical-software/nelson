@@ -518,6 +518,14 @@ ArrayOf::setNDimSubset(ArrayOfVector& index, ArrayOf& rightData)
                     }
                 }
             }
+        } else {
+            for (size_t i = 0; i < index.size(); i++) {
+                if (isColonOperator(index[i])) {
+                    haveColonOperator = true;
+                    index[i] = ArrayOf::integerRangeConstructor(
+                        1, 1, rightData.getDimensionLength(static_cast<int>(i)), true);
+                }
+            }
         }
     }
     try {
@@ -543,13 +551,11 @@ ArrayOf::setNDimSubset(ArrayOfVector& index, ArrayOf& rightData)
                 dataCount *= index[i].getLength();
             }
         }
-
         if (isEmpty()) {
             if ((dataCount > rightData.getDimensions().getElementCount()) && !haveColonOperator) {
                 Error(_W("Size mismatch in assignment A(I1,I2,...,In) = B."));
             }
         }
-
         // Next, we compute the dimensions of the right hand side
         indexType advance = 0;
         if (rightData.isSparse()) {
@@ -607,12 +613,10 @@ ArrayOf::setNDimSubset(ArrayOfVector& index, ArrayOf& rightData)
             dp = dp->putData(dp->dataClass, newdim, qp, true);
             return;
         }
-
         resize(a);
         if (a.getElementCount() < rightData.getDimensions().getElementCount()) {
             Error(_W("Size mismatch in assignment A(I1,I2,...,In) = B."));
         }
-
         myDims = dp->dimensions;
         // Get a writable data pointer
         void* qp = getReadWriteDataPointer();
@@ -688,6 +692,11 @@ ArrayOf::setNDimSubset(ArrayOfVector& index, ArrayOf& rightData)
             setNDimSubsetDispatchReal<uint64>(colonIndex, static_cast<uint64*>(qp),
                 static_cast<const uint64*>(rightData.getDataPointer()), outDimsInt, srcDimsInt,
                 indx, L, advance);
+            break;
+        case NLS_GO_HANDLE:
+            setNDimSubsetDispatchReal<nelson_handle>(colonIndex, static_cast<nelson_handle*>(qp),
+                static_cast<const nelson_handle*>(rightData.getDataPointer()), outDimsInt,
+                srcDimsInt, indx, L, advance);
             break;
         case NLS_HANDLE:
             setNDimSubsetDispatchReal<nelson_handle>(colonIndex, static_cast<nelson_handle*>(qp),

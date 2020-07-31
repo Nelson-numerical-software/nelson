@@ -25,6 +25,7 @@
 //=============================================================================
 #include "ToLogical.hpp"
 #include "SparseDynamicFunctions.hpp"
+#include "nlsConfig.h"
 //=============================================================================
 namespace Nelson {
 //=============================================================================
@@ -77,10 +78,10 @@ integerToLogical(const ArrayOf& A)
             ArrayOf::allocateArrayOf(NLS_LOGICAL, A.getLength(), stringVector(), false));
         r = ArrayOf(NLS_LOGICAL, A.getDimensions(), pLogical, false);
         auto* ptrInt = (T*)A.getDataPointer();
-#if defined(__NLS_WITH_OPENMP)
+#if defined(_NLS_WITH_OPENMP)
 #pragma omp parallel for
 #endif
-        for (indexType k = 0; k < A.getLength(); k++) {
+        for (ompIndexType k = 0; k < (ompIndexType)A.getLength(); k++) {
             pLogical[k] = static_cast<logical>(ptrInt[k] != 0);
         }
     }
@@ -95,6 +96,9 @@ ToLogical(ArrayOf A)
         ArrayOf r(A);
         r.ensureSingleOwner();
         return r;
+    } break;
+    case NLS_GO_HANDLE: {
+        Error(_W("Conversion to logical from graphic_object is not possible."));
     } break;
     case NLS_HANDLE: {
         Error(_W("Conversion to logical from handle is not possible."));

@@ -1,402 +1,223 @@
-# 0.3.10 (2019-10-29)
+# 0.4.7 (2020-07-31)
 
-* extends 'getmodules' to return module versions using new required 'module.json' (see module's template).
+  * [#311](http://github.com/Nelson-numerical-software/nelson/issues/311): betainc builtin: Incomplete beta function.
 
-* all core's modules are protected and cannot removed during an nelson's session.
+  * add icon to figure
 
-* increase max execution time for tests (2 minutes) and benchs (6 minutes).
+  * some doxygen comments about mex functions.
 
-* split benchs and tests execution for CI.
-
-* repo builtin: clone, checkout branch or tag, ... from an GIT repository.
-
-Compilation:
-------------
-
-* Visual studio 2019 Community and Pro upgrade (required)
-  Dependencies updated: 
-  - ICU 64.2 on Windows
-  - libffi updated VS 2019 build
-  - libxml 2.9.9 VS 2019 build
-  - libcurl 7.66.0_2
-  - CMake 5.15.3 update for Windows
-  - MKL 2019 update 5
-  - HDF5 1.10.5 VS 2019 build
-  - MATIO 1.5.17 VS 2019 build
-
-* appveyor script updated to build with VS 2019
-
-* Innosetup 6 support
-
+  * [#299](http://github.com/Nelson-numerical-software/nelson/issues/299): extends "complex" to manage sparse matrix.
 
 Bug Fixes:
 ---------
 
-  * [#254](http://github.com/Nelson-numerical-software/nelson/issues/254): fix Innosetup 6 warnings.
-
-  * [#252](http://github.com/Nelson-numerical-software/nelson/issues/252): help files of external modules were not loaded.
-
-  * [#245](http://github.com/Nelson-numerical-software/nelson/issues/245): Update MKL 2019 dependencies.
-
-  * [#202](http://github.com/Nelson-numerical-software/nelson/issues/202): Migrate to VS 2019.
-
-
-# 0.3.9 (2019-09-25)
-
-Features:
----------
-
- * namedargs2cell builtin: Converts a struct containing name-value pairs to a cell.
-
- * extends 'size' builtin to find lengths of multiple array dimensions at a time.
-
- * matches builtin: Determine if pattern matches with strings.
-
- * webwrite function: Write data to RESTful web service.
-
- * improves error message raised by 'run' builtin.
-
- * extends size, length, ndims to manage function_handle type.
-
- * fscanf builtin: Read data from text file.
-
-
-Bug Fixes:
----------
-
-  * [#249](http://github.com/Nelson-numerical-software/nelson/issues/249): refactor code.
-
-  * [#236](http://github.com/Nelson-numerical-software/nelson/issues/236): mpiexec returned warning on docker as root user.
-
-  * [#235](http://github.com/Nelson-numerical-software/nelson/issues/235): add example about function_handle with webread.
-
-  * [#233](http://github.com/Nelson-numerical-software/nelson/issues/233): fix typo in native2unicode help file.
-
-  * [#227](http://github.com/Nelson-numerical-software/nelson/issues/227): Qt 5.13 support.
-
-  * [#220](http://github.com/Nelson-numerical-software/nelson/issues/220): setfield function added.
-
-  * revert b22ae88a6536cd614f555af7fbd865cc607bea7f due to HDFFV-10579.
-
-  * changes file or directory permission had a speed cost.
-
-
+  * [#300](http://github.com/Nelson-numerical-software/nelson/issues/300): nmm returns wrong error.
 
 Compilation:
 ------------
 
-* Qt 5.13.0 on Windows.
+  * Qt 5.14.2 on Windows
 
-* GitHub Actions CI (Ubuntu 18.04)
 
-* [#244](http://github.com/Nelson-numerical-software/nelson/issues/244): Remove semaphore CI 2.0 build.
 
+# 0.4.6 (2020-06-27)
 
-# 0.3.8 (2019-08-24)
+* [IN PROGRESS] C MEX API:
 
-Features:
----------
+  * extends mex function to manage interleaved complex option and c flags.
 
-  * RESTfull API webservice for Nelson: 
-    - weboptions function: Set parameters for RESTful API web service.
-    - websave builtin: Save content from RESTful API web service to file.
-    - webread builtin: Read content from RESTful API web service to nelson's variable.
+  * all C MEX API implemented, full API documentation and examples in progress.
 
-  * UNICODE support extended in Nelson:
-    - unicode2native builtin: Converts unicode characters representation to bytes representation.
-    - native2unicode builtin: Converts bytes representation representation to unicode string representation.
-    - nativecharset builtin: Find all charset matches that appear to be consistent with the input.
-    - text editor detects files charset and open files with it.
-    - fileread / filewrite builtin extended to use an characters encoding.
-    - fopen, fprintf, fgetl, fgets, fread, and fwrite builtin extended to manage characters encoding.
+  * mxMakeArrayReal, mxMakeArrayComplex functions.
 
-  * feof builtin: check for end of file.
+  * mxGetImagData, mxSetImagData functions.
 
-  * ferror builtin: test for i/o read/write errors.
+  * mxGetLogicals, mxIsLogicalScalar, mxIsLogicalScalarTrue functions.
 
-  * tempname function: Returns an unique temporary filename.
+  * mxGetInt8s, mxSetInt8s, mxGetComplexInt8s, mxSetComplexInt8s, mxGetUint8s, mxSetUint8s, mxGetComplexUint8s
+    mxSetComplexUint8s, mxGetInt16s, mxSetInt16s, mxGetComplexInt16s, mxSetComplexInt16s, mxGetUint16s, mxGetComplexUint16s
+    mxSetComplexUint16s, mxGetInt32s, mxSetInt32s, mxGetComplexInt32s, mxSetComplexInt32s, mxGetUint32s, mxSetUint32s
+    mxGetComplexUint32s, mxSetComplexUint32s, mxSetUint16s, mxGetInt64s, mxSetInt64s, mxGetComplexInt64s, mxSetComplexInt64s
+    mxGetUint64s, mxSetUint64s, mxGetComplexUint64s, mxSetComplexUint64s functions.
 
-  * test_run uses nh5 files as result file (previously json)
+  * mxIsObject, mxIsFunctionHandle, mxIsOpaque functions.
 
+  * mxIsInt8, mxIsInt16, mxIsInt32, mxIsInt64, mxIsUint8, mxIsUint16, mxIsUint32, mxIsUint64 functions.
 
-Bug Fixes:
----------
+  * mxCreateStringFromNChars, mxGetNChars
 
-  * [#226](http://github.com/Nelson-numerical-software/nelson/issues/226): tempdir() did not include a final slash.
+  * mxRemoveField, mxAddField, mxSetField, mxSetFieldByNumber, mxGetFieldNumber, mxGetFieldNameByNumber functions.
 
-  * [#224](http://github.com/Nelson-numerical-software/nelson/issues/224): cd 當第一個按讚的人 crashed Nelson.
+  * mexGetVariable, mexGetVariablePtr, mexPutVariable functions.
 
-
-Compilation:
-------------
-
-* Visual studio 15.9.14.
-
-* Qt 5.12.4 on Windows.
-
-* CMake 3.9 required on linux and MacOS.
-
-* CircleCI moved to Arch Linux build.
-
-
-
-# 0.3.7 (2019-07-23)
-
-Features:
----------
-
-  * dec2base builtin: Convert decimal number to another base.
-
-  * dec2bin builtin: Convert decimal number to base 2.
-
-  * dec2hex builtin: Convert decimal number to base 16.
-
-  * base2dec builtin: Convert number in a base to decimal.
-
-  * bin2dec builtin: Convert number in base 2 to decimal.
-
-  * hex2dec builtin: Convert number in base 16 to decimal.
-
-  * flintmax builtin: Largest consecutive integer in floating-point format.
-
-  * realmax builtin: Largest positive floating-point number.
-
-  * struct builtin extended to convert object created by 'class' to structure.
-
-
-Bug Fixes:
----------
-
-  * [#214](http://github.com/Nelson-numerical-software/nelson/issues/214): nargin, nargin were slower than 0.3.5.
-
-  * [#213](http://github.com/Nelson-numerical-software/nelson/issues/213): fix typo in banner help.
-
-Compilation:
-------------
-
-  * [#212](http://github.com/Nelson-numerical-software/nelson/issues/212): MATIO 1.5.16 used all platforms.
-
-  * [#211](http://github.com/Nelson-numerical-software/nelson/issues/211): BOOST 1.70 on Windows platforms.
-
-  * allocateArrayOf and new_with_exception no more set memory to zero by default. This speed up array constructors.
-
-
-# 0.3.6 (2019-06-26)
-
-Features:
----------
-
-  * num2bin builtin: Convert number to binary representation.
-
-  * bin2num builtin: Convert two's complement binary string to number.
-
-  * swapbytes builtin: endian converter.
-
-  * zip/unzip builtin: Compress/Uncompress files natively into zip file (with Unicode support).
-
-  * license function: Get license information for Nelson.
-
-
-Compilation:
-------------
-
-  * update travis-CI script to support Ubuntu 16.04.
-
-
-# 0.3.5 (2019-05-26)
-
-Features:
----------
-
-  * Licensing change: Nelson is now released under the terms of the GNU Lesser General Public License (LGPL) v2.1.
-   It is still also available under the terms of the GNU General Public License (GPL) v2.0.
-
-    You can build Nelson under LGPL v2.1 license on Unix/MacosX with
-    ```bash
-    cd nelson
-    cmake -DLGPL21_ONLY=ON -G "Unix Makefiles" .
-    ```
-    On Windows, it is also easy, if you do not select SLICOT library during setup.
- 
-  * FFTW Wrapper allows to load dynamically FFTW library available on platform.
-
-  * SLICOT Wrapper allows to load dynamically SLICOT library available on platform.
-
-  * unix, dos, system builtin reworked (asynchronious, better pipes redirection, detached process). This function can be interrupted with CTRL-C key.
-
-  * MSVC 2019 support added to build C/C++ code easily "on fly" on Windows.  
-
-
-Bug Fixes:
----------
-
-  * [#198](http://github.com/Nelson-numerical-software/nelson/issues/198): history load and save will be disable if nelson is started with '--nouserstartup'.
-
-  * [#196](http://github.com/Nelson-numerical-software/nelson/issues/196): call cmake 3.11 from Nelson fails on linux.
-
-
-Compilation:
-------------
-
-* remove hardcoded path between dynamic libraries on linux and macos. It will allow to package nelson easily.
-
-* BOOST 1.64 or more required
-
-* Build on MacOs X 10.13.6 and 10.14.5 (SD notary currently not supporterd.)
-
-* add Dockerfile for Arch, Debian, Fedora images used for CI.
-
-* SLICOT library removed from Nelson's source and moved [here](http://github.com/Nelson-numerical-software/slicot_f2c).
-   
-
-
-# 0.3.4 (2019-04-27)
-
-Features:
----------
-
-* Coverage and Profiling Tools for Nelson's language:
-
-  - profile function: Profile execution time for functions
-  - profsave function: Save profile report in HTML format
-
-* blanks builtin: creates an string of blank characters.
-
-* .nh5 files have an header to identify it easily.
-
-* isnh5file, ismatfile extended to return header string.
-
-Bug Fixes:
----------
-
-  * [#193](http://github.com/Nelson-numerical-software/nelson/issues/193): func2str help was wrong.
-
-
-Compilation:
-------------
-
-* MATIO 1.5.15
-
-  Thanks to MAT file I/O library (MATIO) to provide an easy support for MAT-file.
-
-* more 100 warnings fixed (Thanks to PVS-Studio analyzer and also Cppcheck).
-
-* .editorconfig file added.
-
-* Visual studio 15.9.11
-
-* Qt 5.12.2 on Windows
-
-
-
-# 0.3.3  (2019-03-21)
-
-Features:
----------
-
-* load, save MAT-files:
-
-  - load overloads loadnh5, loadmat functions.
-  - save overloads savenh5, savemat functions.
-  - .mat file extension support added: data formatted (Nelson workspace).
-  - .mat file association on Windows. load MAT file as data formatted for Nelson.
-  - loadmat: load mat-file into Nelson's workspace
-  - savemat: save Nelson's workspace to .mat file.
-  - rename h5save to savenh5, h5load to loadnh5
-
-* whos: list variables with sizes and types.
-
-  - whosmat: list variables in an valid .mat file with sizes and types.
-  - whosnh5: list variables in an valid .nh5 file with sizes and types.
-
-* extends who to manage '-file' option.
-
-  - whomat: list variables in an valid .mat file.
-  - whonh5: list variables in an valid .nh5 file.
-
-* ismatfile: check if a file is a valid .mat file.
-
-* isnh5file: check if a file is a valid .nh5 file.
-
-
-Compilation:
-------------
-
-* MATIO 1.5.13
-
-  Thanks to MAT file I/O library (MATIO) to provide an easy support for MAT-file.
-
-* BOOST 1.69 (Windows)
-
-* CMake 3.14 (Windows)
-
-
-## 0.3.2 (2019-02-24)
-
-Features:
----------
-
-* h5save: save Nelson's workspace to .nh5 file.
-
-* h5load: load data form .nh5 file into Nelson's workspace.
-
-* save, load alias on h5save and h5load.
-
-* .nh5 file extension support added: data formatted (Nelson workspace).
-
-* .nh5 file association on Windows. load data formatted for Nelson.
-
-
-Compilation:
----------
-
-  * Qt 5.12.1 on Windows
-
-  * fix some 32 bit Warnings.
-
-
-## 0.3.1 (2019-01-26)
-
-
-Features:
----------
-
-  * [#173](http://github.com/Nelson-numerical-software/nelson/issues/173): convertStringsToChars and convertCharsToStrings builtin.
-
-
-Bug Fixes:
----------
-
-
-  * [#182](http://github.com/Nelson-numerical-software/nelson/issues/182): Nelson did not start without hdf5 dependency.
-
-  * [#179](http://github.com/Nelson-numerical-software/nelson/issues/179): isfolder alias on isdir.
-
-  * [#177](http://github.com/Nelson-numerical-software/nelson/issues/177): some tests failed when it executed from a binary version on windows.
-
-  * [#176](http://github.com/Nelson-numerical-software/nelson/issues/176): nfilename did not return canonical path name in some cases.
-
-  * [#9](http://github.com/Nelson-numerical-software/nelson/issues/9): tests were not embedded in linux & macos binaries (make package).
-
-  * [#4](http://github.com/Nelson-numerical-software/nelson/issues/4): nelson.pot generated from sources.
-
-
-Compilation:
----------
-
-  * MKL 2019.1 updated for blas, lapack, lapacke, fftw wrappers on Windows.
-
-  * Nelson deployed/installed on appveyor.
-
-  * Nelson available as portable zip file for Windows.
-
-  * Update Visual studio solution to SDK 10.17763
+  * mexMakeArrayPersistent, mexMakeMemoryPersistent functions.
   
-  * Update International Components for Unicode 63.1 (Windows and MacOs)
+  
+Compilation:
+------------
+
+* boost 1.73.0 on Windows.
+
+* ninja-build used with github actions CI.
+
+
+# 0.4.5 (2020-05-23)
+
+* graphic object type added.
+
+* figure builtin: creates figure.
+
+* gcf builtin: get current figure.
+
+* groot builtin: returns graphic root object.
+
+* get, set, isvalid, class, fieldnames, delete, disp builtin overloaded to manage graphic objects.
+
+* test_run: tests are sorted on all platforms.
+
+* [IN PROGRESS] C MEX API:
+
+  * C MEX supports build with MinGW compiler.
+
+  * mxArray and ArrayOf conversion optimized.
+
+  * C MEX interleaved complex support.
+
+  * C MEX Sparse type fully supported.
+
+  * mxGetClassName, mxSetClassName fully supported.
+
+  * mxGetProperty, mxSetProperty fully supported (handle, graphic object, ...).
+
+
+Bug Fixes:
+---------
+
+  * [#295](http://github.com/Nelson-numerical-software/nelson/issues/295): sort did not return an wrong error message for struct.
+
+
+Compilation:
+------------
+
+* libcurl 7.70.0 on Windows.
+
+* cmake 3.17.2 on Windows.
+
+* CA certificate (Wed Jan 1 04:12:10 2020 GMT)
+
+
+# 0.4.4 (2020-04-29)
+
+* lookandfeel builtin: default current application look and feel.
+
+* clear builtin extended to clear mex functions.
+
+* mex function used to build MEX files.
+
+* [IN PROGRESS] MEX C API allows to access Nelson, GNU Octave and commercial software functions.
+
+  documentation and tests will be extended in next version.
+
+  Feedback and external tests are welcome.
+
+Compilation:
+------------
+
+* MacOs X Catalina fully working.
+
+* Ubuntu 20.04 LTS supported.
+
+
+# 0.4.3 (2020-03-30)
+
+* mean builtin: Mean elements of an array with nanflag and 'all' support.
+
+* sum and prod optimized.
+
+* save and load with .mat, .nh5 files support unicode filename on all platforms.
+
+* simplify builtin default prototype (breaking change). Evaluator is no more required for builtin.
+
+* NelsonPrint internal function added.
+
+
+Bug Fixes:
+---------
+
+  * [#287](http://github.com/Nelson-numerical-software/nelson/issues/287): Parser error message are not localized.
+
+  * [#286](http://github.com/Nelson-numerical-software/nelson/issues/286): [end] = sin(1) did not return an syntax error.
+
+  * [#284](http://github.com/Nelson-numerical-software/nelson/issues/284): Nth dimensions assignation of an empty array with 2d matrix did not work.
+
+
+Compilation:
+------------
+
+* MATIO 1.5.17 with unicode support
+
+* HDF5 1.12.0 support
+
+* BISON 3.5.0
+
+
+
+# 0.4.2 (2020-02-25)
+
+* min, max builtin: Minimum/Maximum elements of an array with nanflag and 'all' support.
+
+* flipud: Flip array up to down.
+
+* fliplr: Flip array left to right.
+
+* flip: Flip order of elements.
+
+* flipdim: Flip array along specified dimension.
+
+* log2 builtin: Base 2 logarithm and floating-point number dissection.
+
+* colon operator optimized.
+
+* faster algorithm to convert variable to different data type.
+
+* replaces hashmap used for functions and variables.
+
+* some few speed optimization about evaluator.
+
+
+# 0.4.1 (2020-01-27)
+
+* rework and speed optimization for times, divide, addition, subtraction operators.
+
+* sum builtin: sum of array elements.
+
+* linspace builtin: linearly spaced vector constructor.
+
+* logspace builtin: logarithmically spaced vectors constructor.
+
+* log10 builtin: Common logarithm (base 10).
+
+* log1p builtin: log(1+x) accurately for small values of x.
+
+* replaces dot animation by percent display about help indexing.
+
+* html style about table simplified.
+
+
+Compilation:
+------------
+
+* uses ASIO C++ library in place of BOOST ASIO.
+
+* Add Qt 5.14.0 support.
+
+* OPEN MP support added.
 
 
 Previous changelog:
 ---------
+
+[Changelog v0.3.x](CHANGELOG-0.3.x.md)
 
 [Changelog v0.2.x](CHANGELOG-0.2.x.md)
 

@@ -30,12 +30,20 @@
 #ifdef _MSC_VER
 #include <Windows.h>
 #endif
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+#include <clocale>
+#include <sstream>
+#include "StartNelson.h"
+#include "StartNelsonMainScript.hpp"
+#include "StartNelsonUserScript.hpp"
+#include "StartNelsonUserModules.hpp"
+#include "FinishNelsonMainScript.hpp"
+#include "FinishNelsonUserScript.hpp"
 #include "AddGateway.hpp"
 #include "EvaluateCommand.hpp"
 #include "EvaluateScriptFile.hpp"
 #include "Evaluator.hpp"
-#include "FinishNelsonMainScript.hpp"
-#include "FinishNelsonUserScript.hpp"
 #include "GetNelsonPath.hpp"
 #include "Localization.hpp"
 #include "MainEvaluator.hpp"
@@ -48,19 +56,14 @@
 #include "ProgramOptions.hpp"
 #include "RecursionStack.hpp"
 #include "SetNelSonEnvironmentVariables.hpp"
-#include "StartNelson.h"
-#include "StartNelsonMainScript.hpp"
-#include "StartNelsonUserScript.hpp"
 #include "TimeoutThread.hpp"
 #include "characters_encoding.hpp"
 #include "SioClientCommand.hpp"
 #include "WarningIds.hpp"
 #include "WarningEmitter.h"
 #include "ErrorEmitter.h"
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-#include <clocale>
-#include <sstream>
+#include "NelsonPrint.hpp"
+#include "MxCall.h"
 //=============================================================================
 static void
 ErrorCommandLineMessage_startup_exclusive(NELSON_ENGINE_MODE _mode)
@@ -176,7 +179,7 @@ ErrorCommandLine(const std::wstring& str, NELSON_ENGINE_MODE _mode)
 //=============================================================================
 static int
 NelsonMainStates(Evaluator* eval, bool haveNoStartup, bool haveNoUserStartup,
-    const std::wstring& commandToExecute, const std::wstring& fileToExecute,
+    bool haveNoUserModules, const std::wstring& commandToExecute, const std::wstring& fileToExecute,
     const wstringVector& filesToOpen, const wstringVector& filesToLoad)
 {
     eval->resetState();
@@ -187,7 +190,16 @@ NelsonMainStates(Evaluator* eval, bool haveNoStartup, bool haveNoUserStartup,
             goto FINISH;
         }
         eval->resetState();
-        if (!haveNoUserStartup) {
+        bool loadUserModulesSucceeced = false;
+        if (!haveNoUserModules) {
+            loadUserModulesSucceeced = StartNelsonUserModules(eval);
+            eval->clearStacks();
+            if (eval->getState() == NLS_STATE_QUIT) {
+                goto FINISH;
+            }
+            eval->resetState();
+        }
+        if (!haveNoUserStartup && loadUserModulesSucceeced) {
             StartNelsonUserScript(eval);
             eval->clearStacks();
             if (eval->getState() == NLS_STATE_QUIT) {
@@ -322,6 +334,8 @@ StartNelsonInternal(wstringVector args, NELSON_ENGINE_MODE _mode)
     if (eval != nullptr) {
         setWarningEvaluator(eval);
         setErrorEvaluator(eval);
+        setPrintInterface(eval->getInterface());
+        mexSetEvaluator(eval);
         eval->setQuietMode(bQuietMode);
         eval->setCommandLineArguments(args);
         if (lang != Localization::Instance()->getCurrentLanguage() && !lang.empty()) {
@@ -346,7 +360,7 @@ StartNelsonInternal(wstringVector args, NELSON_ENGINE_MODE _mode)
             SioClientCommand::getInstance()->create(wstring_to_utf8(socketIoURI));
         }
         exitCode = NelsonMainStates(eval, po.haveNoStartup(), po.haveNoUserStartup(),
-            commandToExecute, fileToExecute, filesToOpen, filesToLoad);
+            po.haveNoUserModules(), commandToExecute, fileToExecute, filesToOpen, filesToLoad);
         ::destroyMainEvaluator();
         clearWarningIdsList();
     } else {

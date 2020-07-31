@@ -53,15 +53,16 @@ SparseRealPart(ArrayOf a)
                 for (Eigen::SparseMatrix<logical, 0, signedIndexType>::InnerIterator it(
                          *spmatSRC, k);
                      it; ++it) {
-                    spmatDST->coeffRef(it.row(), it.col()) = it.value() == 0 ? 0 : 1;
+                    if (it.value() != 0) {
+                        spmatDST->coeffRef(it.row(), it.col()) = it.value() == 1;
+                    }
                 }
             }
             spmatDST->finalize();
             spmatDST->makeCompressed();
             void* pRes = (void*)spmatDST;
             res = ArrayOf(NLS_DOUBLE, a.getDimensions(), pRes, true);
-        } catch (const std::bad_alloc& e) {
-            e.what();
+        } catch (const std::bad_alloc&) {
             Error(ERROR_MEMORY_ALLOCATION);
         }
     } break;
@@ -80,15 +81,16 @@ SparseRealPart(ArrayOf a)
                 for (Eigen::SparseMatrix<doublecomplex, 0, signedIndexType>::InnerIterator it(
                          *spmatSRC, k);
                      it; ++it) {
-                    spmatDST->coeffRef(it.row(), it.col()) = it.value().real();
+                    if (it.value().real() != 0.) {
+                        spmatDST->coeffRef(it.row(), it.col()) = it.value().real();
+                    }
                 }
             }
             spmatDST->finalize();
             spmatDST->makeCompressed();
             void* pRes = (void*)spmatDST;
             res = ArrayOf(NLS_DOUBLE, a.getDimensions(), pRes, true);
-        } catch (const std::bad_alloc& e) {
-            e.what();
+        } catch (const std::bad_alloc&) {
             Error(ERROR_MEMORY_ALLOCATION);
         }
     } break;

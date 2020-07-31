@@ -171,11 +171,15 @@
     <ClCompile Include="..\cpp\bannerBuiltin.cpp" />
     <ClCompile Include="..\cpp\Gateway.cpp" />
     <ClCompile Include="..\cpp\inserthtmlBuiltin.cpp" />
+    <ClCompile Include="..\cpp\lookandfeelBuiltin.cpp" />
     <ClCompile Include="..\cpp\qt_verboseBuiltin.cpp" />
     <ClCompile Include="..\cpp\uigetdirBuiltin.cpp" />
     <ClCompile Include="dllMain.c" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\api_nelson\src\c\nlsApi_nelson.vcxproj">
+      <Project>{1c76cdc6-19d8-429a-9ec1-817ad139f80d}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\core\src\c\nlsCore.vcxproj">
       <Project>{2e6aabb4-2551-4478-814d-648150952186}</Project>
     </ProjectReference>
@@ -192,7 +196,7 @@
       <Project>{ab85e897-56b7-4792-8a8e-f3797be2b7cc}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\src\c\nlsGui.vcxproj">
-      <Project>{bc919c8e-9b81-48aa-b41c-c13eafa7f239}</Project>
+      <Project>{075f60ad-38ba-4531-9d46-7453e3416e15}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -201,6 +205,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\bannerBuiltin.hpp" />
     <ClInclude Include="..\include\inserthtmlBuiltin.hpp" />
+    <ClInclude Include="..\include\lookandfeelBuiltin.hpp" />
     <ClInclude Include="..\include\nlsGui_builtin_exports.h" />
     <ClInclude Include="..\include\qt_verboseBuiltin.hpp" />
     <ClInclude Include="..\include\uigetdirBuiltin.hpp" />

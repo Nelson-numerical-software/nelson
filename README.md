@@ -64,6 +64,8 @@ these own data types and operations on these data types by using overload.
 
 - Interfacing C/C++ or Fortran with Nelson (build and load external code on the fly).
 
+- MEX C API compatibility.
+
 - RESTful API web service.
 
 - The QML engine enables nelson programs to display and manipulate graphical content using Qt's QML framework.
@@ -91,6 +93,12 @@ these own data types and operations on these data types by using overload.
 - [Nelson cloud](https://www.npmjs.com/package/nelson-cloud):
   Instant access to Nelson anywhere from an web browser. 
 
+- Module skeleton to extend Nelson available here: 
+   - [template macros and builtin](https://github.com/Nelson-numerical-software/module_skeleton),
+   - [basic template macros only](https://github.com/Nelson-numerical-software/module_skeleton_basic).
+
+ - Nelson Modules Manager (nmm) : package manager for Nelson
+
 
 ## Licenses
 
@@ -111,7 +119,7 @@ Nelson is delivered under dual-license :
 - **Docker:** <https://hub.docker.com/r/nelsonsoftware/nelson/>
 - **Documentation:** <https://nelson-numerical-software.github.io/nelson-website/help/en_US/>
 - **GitBook:**
-<https://nelson-numerical-software.gitbooks.io/nelson/content/en/>
+<https://nelson-9.gitbook.io/nelson/>
 - **Gitter:** <https://gitter.im/nelson-numerical-software/Lobby>
 - **YouTube:** <https://www.youtube.com/channel/UCdZMnH0HC9XflNGAFFiRX9g>
 - **Twitter:** <https://twitter.com/Nelson_software>
@@ -130,6 +138,7 @@ The systems listed here without CI or binaries are known to build and operate, b
 | Windows 7+       | x86-64 (64-bit)  | ✓  | ✓        |
 |                  | i686 (32-bit)    | ✓  | ✓        |
 | MacOS 10.10+     | x86-64 (64-bit)  | ✓  |          |
+| Ubuntu 20.04     | x86-64 (64-bit)  |    |          |
 | Ubuntu 18.04     | x86-64 (64-bit)  | ✓  |          |
 | Ubuntu 16.04     | x86-64 (64-bit)  | ✓  |          |
 | Debian 10        | x86-64 (64-bit)  | ✓  |          |

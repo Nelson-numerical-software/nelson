@@ -26,6 +26,7 @@
 #include "stringsBuiltin.hpp"
 #include "Error.hpp"
 #include "StringFormat.hpp"
+#include "nlsConfig.h"
 //=============================================================================
 using namespace Nelson;
 //=============================================================================
@@ -81,8 +82,12 @@ Nelson::StringGateway::stringsBuiltin(Evaluator* eval, int nLhs, const ArrayOfVe
                         dims.setDimensionLength(k, index);
                     }
                     dims.simplify();
-                    auto* elements = new ArrayOf[dims.getElementCount()];
-                    for (indexType k = 0; k < dims.getElementCount(); k++) {
+                    ompIndexType elementCount = dims.getElementCount();
+                    auto* elements = new ArrayOf[elementCount];
+#if defined(_NLS_WITH_OPENMP)
+#pragma omp parallel for
+#endif
+                    for (ompIndexType k = 0; k < elementCount; k++) {
                         elements[k] = ArrayOf::characterArrayConstructor("");
                     }
                     ArrayOf c = ArrayOf(NLS_STRING_ARRAY, dims, elements);
@@ -96,7 +101,7 @@ Nelson::StringGateway::stringsBuiltin(Evaluator* eval, int nLhs, const ArrayOfVe
         }
     } else {
         Dimensions dims(argIn.size());
-        for (sizeType k = 0; k < static_cast<sizeType>(argIn.size()); k++) {
+        for (indexType k = 0; k < static_cast<indexType>(argIn.size()); k++) {
             if (argIn[k].getDataClass() == NLS_DOUBLE) {
                 if (argIn[k].isScalar()) {
                     ArrayOf arg = argIn[k];
@@ -124,8 +129,12 @@ Nelson::StringGateway::stringsBuiltin(Evaluator* eval, int nLhs, const ArrayOfVe
             }
         }
         dims.simplify();
-        auto* elements = new ArrayOf[dims.getElementCount()];
-        for (indexType k = 0; k < dims.getElementCount(); k++) {
+        ompIndexType elementCount = dims.getElementCount();
+        auto* elements = new ArrayOf[elementCount];
+#if defined(_NLS_WITH_OPENMP)
+#pragma omp parallel for
+#endif
+        for (ompIndexType k = 0; k < elementCount; k++) {
             elements[k] = ArrayOf::characterArrayConstructor("");
         }
         ArrayOf c = ArrayOf(NLS_STRING_ARRAY, dims, elements);

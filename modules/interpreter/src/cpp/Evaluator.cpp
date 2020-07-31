@@ -107,6 +107,8 @@
 #include "Colon.hpp"
 #include "Profiler.hpp"
 #include "ProfilerHelpers.hpp"
+#include "ClassToString.hpp"
+#include "IsValidVariableName.hpp"
 //=============================================================================
 #ifdef _MSC_VER
 #define strdup _strdup
@@ -122,12 +124,7 @@ public:
     ArrayOf endArray;
     int index = 0;
     size_t count = 0;
-    endData(ArrayOf p, int ndx, size_t cnt)
-    {
-        endArray = p;
-        index = ndx;
-        count = cnt;
-    }
+    endData(ArrayOf p, int ndx, size_t cnt) : endArray(p), index(ndx), count(cnt) {}
     ~endData() = default;
     ;
 };
@@ -208,9 +205,7 @@ Evaluator::rowDefinition(ASTPtr t)
     if (t->opNum != OP_SEMICOLON) {
         Error(ERROR_AST_SYNTAX_ERROR);
     }
-    ASTPtr s = t->down;
-    ArrayOfVector expl = expressionList(s);
-    ArrayOfVector retval(expl);
+    ArrayOfVector retval = expressionList(t->down);
     popID();
     return retval;
 }
@@ -291,8 +286,7 @@ Evaluator::matrixDefinition(ASTPtr t)
     ArrayOfVector v;
     v.reserve(m.size());
     for (size_t k = 0; k < m.size(); k++) {
-        ArrayOf h = HorzCatOperator(this, m[k]);
-        v.push_back(h);
+        v.push_back(HorzCatOperator(this, m[k]));
     }
     ArrayOf res = VertCatOperator(this, v);
     popID();
@@ -387,29 +381,37 @@ approximatelyEqual(double a, double b, double epsilon)
 ArrayOf
 Evaluator::expression(ASTPtr t)
 {
-    pushID(t->context());
     ArrayOf retval;
     // by default as the target we create double
-    if (t->type == const_int_node) {
+    pushID(t->context());
+    switch (t->type) {
+    case const_int_node: {
         retval = ArrayOf::doubleConstructor(atof(t->text.c_str()));
-    } else if (t->type == const_uint64_node) {
+    } break;
+    case const_uint64_node: {
         char* endptr = nullptr;
         unsigned long long int v = strtoull(t->text.c_str(), &endptr, 10);
         auto r = static_cast<uint64>(v);
         retval = ArrayOf::uint64Constructor(r);
-    } else if (t->type == const_float_node) {
+    } break;
+    case const_float_node: {
         boost::replace_all(t->text, "D", "e");
         boost::replace_all(t->text, "d", "e");
         retval = ArrayOf::singleConstructor(((float)atof(t->text.c_str())));
-    } else if (t->type == const_double_node) {
+    } break;
+    case const_double_node: {
         boost::replace_all(t->text, "D", "e");
         boost::replace_all(t->text, "d", "e");
         retval = ArrayOf::doubleConstructor(atof(t->text.c_str()));
-    } else if (t->type == const_character_array_node) {
+    } break;
+    case const_character_array_node: {
         retval = ArrayOf::characterArrayConstructor(std::string(t->text.c_str()));
-    } else if (t->type == const_string_node) {
+    } break;
+    case const_string_node: {
         retval = ArrayOf::stringArrayConstructor(std::string(t->text.c_str()));
-    } else if (t->type == const_complex_node || t->type == const_dcomplex_node) {
+    } break;
+    case const_complex_node:
+    case const_dcomplex_node: {
         boost::replace_all(t->text, "D", "e");
         boost::replace_all(t->text, "d", "e");
         double val = atof(t->text.c_str());
@@ -418,7 +420,8 @@ Evaluator::expression(ASTPtr t)
         } else {
             retval = ArrayOf::dcomplexConstructor(0, val);
         }
-    } else if (t->type == reserved_node) {
+    } break;
+    case reserved_node: {
         if (t->tokenNumber == NLS_KEYWORD_END) {
             if (endStack.empty()) {
                 Error(ERROR_END_ILLEGAL);
@@ -428,18 +431,19 @@ Evaluator::expression(ASTPtr t)
         } else {
             Error(ERROR_UNRECOGNIZED_NODE);
         }
-    } else {
+    } break;
+    default: {
         uint64 ticProfiling = Profiler::getInstance()->tic();
         std::string operatorName;
         switch (t->opNum) {
         case OP_COLON:
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "colon";
             }
             if ((t->down != nullptr) && (t->down->opNum == (OP_COLON))) {
-                retval = doubleColon(t);
+                retval = colonOperator(t);
             } else {
-                retval = unitColon(t);
+                retval = colonUnitOperator(t);
             }
             break;
         case OP_EMPTY: {
@@ -457,92 +461,92 @@ Evaluator::expression(ASTPtr t)
             retval = cellDefinition(t);
         } break;
         case OP_PLUS: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "plus";
             }
             retval = additionOperator(t);
         } break;
         case OP_SUBTRACT: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "minus";
             }
             retval = subtractionOperator(t);
         } break;
         case OP_TIMES: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "mtimes";
             }
             retval = mtimesOperator(t);
         } break;
         case OP_SOR: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "shorcutor";
             }
             retval = shortCutOrOperator(t);
         } break;
         case OP_OR: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "or";
             }
             retval = orOperator(t);
         } break;
         case OP_SAND: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "shorcutand";
             }
             retval = shortCutAndOperator(t);
         } break;
         case OP_AND: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "and";
             }
             retval = andOperator(t);
         } break;
         case OP_LT: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "lt";
             }
             retval = ltOperator(t);
         } break;
         case OP_LEQ: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "le";
             }
             retval = leOperator(t);
         } break;
         case OP_GT: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "gt";
             }
             retval = gtOperator(t);
         } break;
         case OP_GEQ: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "ge";
             }
             retval = geOperator(t);
         } break;
         case OP_EQ: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "eq";
             }
             retval = eqOperator(t);
         } break;
         case OP_NEQ: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "ne";
             }
             retval = neOperator(t);
         } break;
         case OP_DOT_TIMES: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "time";
             }
             retval = timesOperator(t);
         } break;
         case OP_POS: {
             bool bSuccess = false;
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "uplus";
             }
             ArrayOf a = expression(t->down);
@@ -558,7 +562,7 @@ Evaluator::expression(ASTPtr t)
             }
         } break;
         case OP_NEG: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "uminus";
             }
             bool bSuccess = false;
@@ -575,13 +579,13 @@ Evaluator::expression(ASTPtr t)
             }
         } break;
         case OP_NOT: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "not";
             }
             retval = notOperator(t);
         } break;
         case OP_TRANSPOSE: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "ctranspose";
             }
             bool bSuccess = false;
@@ -598,7 +602,7 @@ Evaluator::expression(ASTPtr t)
             }
         } break;
         case OP_DOT_TRANSPOSE: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "transpose";
             }
             bool bSuccess = false;
@@ -628,35 +632,31 @@ Evaluator::expression(ASTPtr t)
             }
         } break;
         case OP_RDIV: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "mrdivide";
             }
-            retval = OverloadBinaryOperator(
-                this, expression(t->down), expression(t->down->right), "mrdivide");
+            retval = rightDivideOperator(t);
         } break;
         case OP_LDIV: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "mldivide";
             }
-            retval = OverloadBinaryOperator(
-                this, expression(t->down), expression(t->down->right), "mldivide");
+            retval = leftDivideOperator(t);
         } break;
         case OP_DOT_RDIV: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "rdivide";
             }
-            retval = OverloadBinaryOperator(
-                this, expression(t->down), expression(t->down->right), "rdivide");
+            retval = dotRightDivideOperator(t);
         } break;
         case OP_DOT_LDIV: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "ldivide";
             }
-            retval = OverloadBinaryOperator(
-                this, expression(t->down), expression(t->down->right), "ldivide");
+            retval = dotLeftDivideOperator(t);
         } break;
         case OP_POWER: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "mpower";
             }
             FunctionDef* mpowerFuncDef = nullptr;
@@ -678,7 +678,7 @@ Evaluator::expression(ASTPtr t)
             retval = res[0];
         } break;
         case OP_DOT_POWER: {
-            if (ticProfiling) {
+            if (ticProfiling != 0U) {
                 operatorName = "power";
             }
             ArrayOf A = expression(t->down);
@@ -699,105 +699,16 @@ Evaluator::expression(ASTPtr t)
                 }
             }
         } break;
-        default:
+        default: {
             Error(ERROR_UNRECOGNIZED_EXPRESSION);
+        } break;
         }
         if (ticProfiling != 0 && !operatorName.empty()) {
             internalProfileFunction stack
                 = computeProfileStack(this, operatorName, utf8_to_wstring(cstack.back().cname));
             Profiler::getInstance()->toc(ticProfiling, stack);
         }
-    }
-    popID();
-    return retval;
-}
-
-//!
-//@Module COLON Index Generation Operator
-//@@Section OPERATORS
-//@@Usage
-// There are two distinct syntaxes for the colon @|:| operator - the two argument form
-//@[
-//  y = a : c
-//@]
-// and the three argument form
-//@[
-//  y = a : b : c
-//@]
-// The two argument form is exactly equivalent to @|a:1:c|.  The output @|y| is the vector
-//\[
-//  y = [a,a+b,a+2b,\ldots,a+nb]
-//\]
-// where @|a+nb <= c|.  There is a third form of the colon operator, the
-// no-argument form used in indexing (see @|indexing| for more details).
-//@@Examples
-// Some simple examples of index generation.
-//@<
-// y = 1:4
-//@>
-// Now by half-steps:
-//@<
-// y = 1:.5:4
-//@>
-// Now going backwards (negative steps)
-//@<
-// y = 4:-.5:1
-//@>
-// If the endpoints are the same, one point is generated, regardless of the step size (middle
-// argument)
-//@<
-// y = 4:1:4
-//@>
-// If the endpoints define an empty interval, the output is an empty matrix:
-//@<
-// y = 5:4
-//@>
-//!
-ArrayOf
-Evaluator::unitColon(ASTPtr t)
-{
-    ArrayOf a;
-    ArrayOf b;
-    pushID(t->context());
-    a = expression(t->down);
-    b = expression(t->down->right);
-    bool bSuccess = false;
-    ArrayOf retval;
-    if (mustOverloadBasicTypes()) {
-        retval = OverloadBinaryOperator(this, a, b, "colon", bSuccess);
-    }
-    if (!bSuccess) {
-        bool needToOverload;
-        retval = Colon(a, b, needToOverload);
-        if (needToOverload) {
-            retval = OverloadBinaryOperator(this, a, b, "colon");
-        }
-    }
-    popID();
-    return retval;
-}
-
-ArrayOf
-Evaluator::doubleColon(ASTPtr t)
-{
-    ArrayOf a;
-    ArrayOf b;
-    ArrayOf c;
-    pushID(t->context());
-    a = expression(t->down->down);
-    b = expression(t->down->down->right);
-    c = expression(t->down->right);
-    ArrayOf retval;
-    bool bSuccess = false;
-    if (mustOverloadBasicTypes()) {
-        retval = OverloadTernaryOperator(this, a, b, c, "colon", bSuccess);
-    }
-    if (!bSuccess) {
-        bool needToOverload;
-        retval = Colon(a, b, c, needToOverload);
-        if (needToOverload) {
-            retval = OverloadTernaryOperator(this, a, b, c, "colon");
-        }
+    } break;
     }
     popID();
     return retval;
@@ -1361,6 +1272,7 @@ Evaluator::forStatement(ASTPtr t)
         elementCount = indexSet.getDimensions().getColumns();
     }
     context->enterLoop();
+
     for (indexType elementNumber = 0; elementNumber < elementCount; elementNumber++) {
         if (isRowVector) {
             indexVar = indexSet.getValueAtIndex(elementNumber);
@@ -1373,7 +1285,10 @@ Evaluator::forStatement(ASTPtr t)
         }
         bool bInserted = context->insertVariable(indexVarName, indexVar);
         if (!bInserted) {
-            Error(_W("Redefining permanent variable."));
+            if (IsValidVariableName(indexVarName, true)) {
+                Error(_W("Redefining permanent variable."));
+            }
+            Error(_W("Valid variable name expected."));
         }
         block(codeBlock);
         if (state == NLS_STATE_RETURN || state == NLS_STATE_ABORT || state == NLS_STATE_QUIT) {
@@ -1733,7 +1648,10 @@ Evaluator::statementType(ASTPtr t, bool printIt)
             ArrayOf b(expression(t->down->right));
             bool bInserted = context->insertVariable(t->down->text, b);
             if (!bInserted) {
-                Error(_W("Redefining permanent variable."));
+                if (IsValidVariableName(t->down->text, true)) {
+                    Error(_W("Redefining permanent variable."));
+                }
+                Error(_W("Valid variable name expected."));
             }
             if (printIt) {
                 io->outputMessage(std::string(t->down->text) + " =\n\n");
@@ -1745,7 +1663,10 @@ Evaluator::statementType(ASTPtr t, bool printIt)
             if (!c.isHandle()) {
                 bool bInserted = context->insertVariable(t->down->text, c);
                 if (!bInserted) {
-                    Error(_W("Redefining permanent variable."));
+                    if (IsValidVariableName(t->down->text, true)) {
+                        Error(_W("Redefining permanent variable."));
+                    }
+                    Error(_W("Valid variable name expected."));
                 }
                 if (printIt) {
                     io->outputMessage(std::string(t->down->text) + " =\n\n");
@@ -1913,24 +1834,6 @@ Evaluator::statement(ASTPtr t)
     } catch (const Exception&) {
         popID();
         throw;
-        /*
-        if (autostop && !InCLI)
-        {
-        e.printMe(io);
-        stackTrace(true);
-        debugCLI();
-        if (state < NLS_STATE_QUIT)
-        {
-        resetState();
-        }
-        popID();
-        }
-        else
-        {
-        popID();
-        throw;
-        }
-        */
     }
 }
 
@@ -2106,7 +2009,7 @@ Evaluator::simpleAssign(ArrayOf& r, ASTPtr t, ArrayOfVector& value)
             // add default behavior;
         } else {
             std::string fieldname = t->down->text;
-            if (r.isHandle()) {
+            if (r.isHandle() || r.isGraphicObject()) {
                 setHandle(r, fieldname, value);
             } else if (r.isStruct() || r.isEmpty()) {
                 r.setFieldAsList(fieldname, value);
@@ -2147,6 +2050,9 @@ indexType
 Evaluator::countLeftHandSides(ASTPtr t)
 {
     ArrayOf lhs;
+    if (t == nullptr) {
+        Error(_W("Syntax error."));
+    }
     if (!context->lookupVariable(t->text, lhs)) {
         lhs = ArrayOf::emptyConstructor();
     }
@@ -2421,14 +2327,19 @@ Evaluator::multiFunctionCall(ASTPtr t, bool printIt)
             Error(_W("Case not managed."));
         }
     } else {
+        std::vector<StackEntry> cstack = this->cstack;
         m = functionExpression(fptr, fAST, (int)lhsCount, false);
+        this->cstack = cstack;
     }
     s = saveLHS;
     while ((s != nullptr) && (m.size() > 0)) {
         ArrayOf c(assignExpression(s->down, m));
         bool bInserted = context->insertVariable(s->down->text, c);
         if (!bInserted) {
-            Error(_W("Redefining permanent variable."));
+            if (IsValidVariableName(s->down->text, true)) {
+                Error(_W("Redefining permanent variable."));
+            }
+            Error(_W("Valid variable name expected."));
         }
         if (printIt) {
             io->outputMessage(s->down->text);
@@ -3046,7 +2957,7 @@ Evaluator::functionExpression(FunctionDef* funcDef, ASTPtr t, int narg_out, bool
                     if (isVar) {
                         if (r.isClassStruct()) {
                             s = t->down;
-                            if (s->opNum == (OP_DOT)) {
+                            if (s->opNum == (OP_DOT) || s->opNum == (OP_DOTDYN)) {
                                 s = s->down;
                                 return scalarArrayOfToArrayOfVector(r.getField(s->text));
                             }
@@ -3181,7 +3092,10 @@ Evaluator::functionExpression(FunctionDef* funcDef, ASTPtr t, int narg_out, bool
                                     delete[] argTypeMap;
                                     argTypeMap = nullptr;
                                 }
-                                Error(_W("Redefining permanent variable."));
+                                if (IsValidVariableName(p->down->text, true)) {
+                                    Error(_W("Redefining permanent variable."));
+                                }
+                                Error(_W("Valid variable name expected."));
                                 return ArrayOfVector();
                             }
                         } else {
@@ -3192,7 +3106,10 @@ Evaluator::functionExpression(FunctionDef* funcDef, ASTPtr t, int narg_out, bool
                                     delete[] argTypeMap;
                                     argTypeMap = nullptr;
                                 }
-                                Error(_W("Redefining permanent variable."));
+                                if (IsValidVariableName(p->down->text, true)) {
+                                    Error(_W("Redefining permanent variable."));
+                                }
+                                Error(_W("Valid variable name expected."));
                                 return ArrayOfVector();
                             }
                         }
@@ -3341,14 +3258,20 @@ Evaluator::getCallers(bool includeCurrent)
     while (i < this->cstack.size()) {
         if (this->cstack[i].tokid == 0) {
             size_t j = i + 1;
-            while ((j < this->cstack.size()) && (this->cstack[j].cname == this->cstack[i].cname)
-                && (this->cstack[j].detail == this->cstack[i].detail)
-                && (this->cstack[j].tokid != 0)) {
+            std::vector<StackEntry> cstackRef = this->cstack;
+            while ((j < cstackRef.size()) && (cstackRef[j].cname == cstackRef[i].cname)
+                && (cstackRef[j].detail == cstackRef[i].detail) && (cstackRef[j].tokid != 0)) {
                 j++;
             }
-            std::string functionname = this->cstack[j - 1].detail;
+            std::string functionname = cstackRef[j - 1].detail;
             if (boost::algorithm::starts_with(functionname, "built-in ")) {
                 boost::algorithm::replace_all(functionname, "built-in ", "");
+            } else if (boost::algorithm::starts_with(functionname, "filename ")) {
+                boost::algorithm::replace_all(functionname, "filename ", "");
+                if (boost::algorithm::ends_with(functionname, ".nlf")) {
+                    boost::filesystem::path p(functionname);
+                    functionname = p.stem().generic_string();
+                }
             } else {
                 // remove all that is not functions
                 bool bOK = !boost::algorithm::contains(functionname, "(")
@@ -3648,7 +3571,9 @@ Evaluator::rhsExpression(ASTPtr t)
             std::string extractionFunctionName = className + "_extraction";
             isFun = lookupFunction(extractionFunctionName, funcDef);
             if (isFun) {
+                std::vector<StackEntry> cstack = this->cstack;
                 m = functionExpression(funcDef, t, 1, false);
+                this->cstack = cstack;
                 popID();
                 return m;
             } else {
@@ -3776,7 +3701,7 @@ Evaluator::rhsExpression(ASTPtr t)
                     t = t->right;
                 }
                 rv = extractClass(r, fieldname, params);
-            } else if (r.isHandle()) {
+            } else if (r.isHandle() || r.isGraphicObject()) {
                 ArrayOfVector params;
                 logical isValidMethod = false;
                 try {
@@ -4306,7 +4231,9 @@ Evaluator::simpleAssignClass(
     argIn.push_back(r);
     argIn.push_back(ArrayOf::characterArrayConstructor(fieldname));
     argIn.push_back(fieldvalue[0]);
+    std::vector<StackEntry> cstack = this->cstack;
     ArrayOfVector res = funcDef->evaluateFunction(this, argIn, nLhs);
+    this->cstack = cstack;
     return res;
 }
 //=============================================================================
@@ -4330,8 +4257,12 @@ Evaluator::extractClass(const ArrayOf& r, const std::string& fieldname, const Ar
         for (ArrayOf a : params) {
             argIn.push_back(a);
         }
-        return funcDef->evaluateFunction(this, argIn, nLhs);
+        std::vector<StackEntry> cstack = this->cstack;
+        ArrayOfVector rv = funcDef->evaluateFunction(this, argIn, nLhs);
+        this->cstack = cstack;
+        return rv;
     }
+    return ArrayOfVector();
 }
 //=============================================================================
 void
@@ -4340,7 +4271,12 @@ Evaluator::setHandle(ArrayOf r, const std::string& fieldname, const ArrayOfVecto
     if (fieldvalue.size() != 1) {
         Error(_W("Right hand values must satisfy left hand side expression."));
     }
-    std::wstring currentType = r.getHandleCategory();
+    std::wstring currentType;
+    if (r.isGraphicObject()) {
+        currentType = ClassToString(r.getDataClass());
+    } else {
+        currentType = r.getHandleCategory();
+    }
     std::wstring ufunctionNameSetHandle = currentType + L"_set";
     std::string functionNameSetHandle = wstring_to_utf8(ufunctionNameSetHandle);
     Context* _context = this->getContext();
@@ -4363,10 +4299,17 @@ ArrayOfVector
 Evaluator::getHandle(ArrayOf r, const std::string& fieldname, const ArrayOfVector& params)
 {
     ArrayOfVector argIn;
-    std::wstring currentType = r.getHandleCategory();
+    std::wstring currentType;
+    std::string functionNameCurrentType;
+    if (r.isGraphicObject()) {
+        currentType = ClassToString(r.getDataClass());
+        functionNameCurrentType = ClassName(r) + "_" + fieldname;
+    } else {
+        currentType = r.getHandleCategory();
+        functionNameCurrentType = wstring_to_utf8(currentType) + "_" + fieldname;
+    }
     Context* _context = this->getContext();
     FunctionDef* funcDef = nullptr;
-    std::string functionNameCurrentType = wstring_to_utf8(currentType) + "_" + fieldname;
     if (_context->lookupFunction(functionNameCurrentType, funcDef)) {
         if (!((funcDef->type() == NLS_BUILT_IN_FUNCTION)
                 || (funcDef->type() == NLS_MACRO_FUNCTION))) {

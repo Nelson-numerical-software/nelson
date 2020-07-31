@@ -32,6 +32,7 @@
 #include "IsCellOfStrings.hpp"
 #include "Error.hpp"
 #include "Exception.hpp"
+#include "nlsConfig.h"
 //=============================================================================
 namespace Nelson {
 //=============================================================================
@@ -109,8 +110,7 @@ StringReplace(const ArrayOf& STR, const ArrayOf& OLD, const ArrayOf& NEW, bool d
                 } else {
                     try {
                         elements = new ArrayOf[nbOutput];
-                    } catch (const std::bad_alloc& e) {
-                        e.what();
+                    } catch (const std::bad_alloc&) {
                         Error(ERROR_MEMORY_ALLOCATION);
                     }
                     elements[0] = ArrayOf::characterArrayConstructor(result);
@@ -135,8 +135,7 @@ StringReplace(const ArrayOf& STR, const ArrayOf& OLD, const ArrayOf& NEW, bool d
             ArrayOf* elements = nullptr;
             try {
                 elements = new ArrayOf[nbOutput];
-            } catch (const std::bad_alloc& e) {
-                e.what();
+            } catch (const std::bad_alloc&) {
                 Error(ERROR_MEMORY_ALLOCATION);
             }
             for (size_t i = 0; i < nbOutput; i++) {
@@ -223,15 +222,15 @@ Replace(const ArrayOf& STR, const ArrayOf& OLD, const ArrayOf& NEW, bool& needTo
     if ((wstr.size() == 1) && (OLD.isCell() || OLD.isStringArray())
         && (NEW.isCell() || NEW.isStringArray())
         && OLD.getDimensions().equals(NEW.getDimensions())) {
-        for (indexType k = 0; k < OLD.getDimensions().getElementCount(); k++) {
+        ompIndexType elementCount = OLD.getDimensions().getElementCount();
+        for (ompIndexType k = 0; k < elementCount; k++) {
             wstr[0] = Replace(wstr[0], wold[k], wnew[k]);
         }
         if (STR.isCell() || STR.isStringArray()) {
             ArrayOf* elements = nullptr;
             try {
                 elements = new ArrayOf[wstr.size()];
-            } catch (const std::bad_alloc& e) {
-                e.what();
+            } catch (const std::bad_alloc&) {
                 Error(ERROR_MEMORY_ALLOCATION);
             }
             elements[0] = ArrayOf::characterArrayConstructor(wstr[0]);
@@ -247,15 +246,15 @@ Replace(const ArrayOf& STR, const ArrayOf& OLD, const ArrayOf& NEW, bool& needTo
     }
     if ((wstr.size() == 1) && (OLD.isCell() || OLD.isStringArray())
         && (NEW.isCharacterArray() || NEW.isStringArray())) {
-        for (indexType k = 0; k < OLD.getDimensions().getElementCount(); k++) {
+        ompIndexType elementCount = OLD.getDimensions().getElementCount();
+        for (ompIndexType k = 0; k < elementCount; k++) {
             wstr[0] = Replace(wstr[0], wold[k], wnew[0]);
         }
         if (STR.isCell() || STR.isStringArray()) {
             ArrayOf* elements = nullptr;
             try {
                 elements = new ArrayOf[wstr.size()];
-            } catch (const std::bad_alloc& e) {
-                e.what();
+            } catch (const std::bad_alloc&) {
                 Error(ERROR_MEMORY_ALLOCATION);
             }
             elements[0] = ArrayOf::characterArrayConstructor(wstr[0]);
@@ -372,8 +371,7 @@ Replace(const ArrayOf& STR, const ArrayOf& OLD, const ArrayOf& NEW, bool& needTo
                     } else {
                         try {
                             elements = new ArrayOf[nbOutput];
-                        } catch (const std::bad_alloc& e) {
-                            e.what();
+                        } catch (const std::bad_alloc&) {
                             Error(ERROR_MEMORY_ALLOCATION);
                         }
                         elements[0] = ArrayOf::characterArrayConstructor(result);
@@ -393,8 +391,7 @@ Replace(const ArrayOf& STR, const ArrayOf& OLD, const ArrayOf& NEW, bool& needTo
                         ArrayOf* elements = nullptr;
                         try {
                             elements = new ArrayOf[nbOutput];
-                        } catch (const std::bad_alloc& e) {
-                            e.what();
+                        } catch (const std::bad_alloc&) {
                             Error(ERROR_MEMORY_ALLOCATION);
                         }
                         res = ArrayOf(outputClass, outputDims, elements);
@@ -409,8 +406,7 @@ Replace(const ArrayOf& STR, const ArrayOf& OLD, const ArrayOf& NEW, bool& needTo
                 ArrayOf* elements = nullptr;
                 try {
                     elements = new ArrayOf[nbOutput];
-                } catch (const std::bad_alloc& e) {
-                    e.what();
+                } catch (const std::bad_alloc&) {
                     Error(ERROR_MEMORY_ALLOCATION);
                 }
                 if (wold.size() == wnew.size() && wnew.size() > 1) {

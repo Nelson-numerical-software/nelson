@@ -49,7 +49,6 @@
 #include "Interface.hpp"
 #include "Types.hpp"
 #include "nlsTypes_exports.h"
-#include <complex>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -71,6 +70,7 @@ class Data;
  * dimensions.  The ArrayOf class uses a seperate data class to store the
  * data.  It can contain an N-dimensional array of any of the following
  * data types:
+ *   - NLS_GO_HANDLE
  *   - NLS_HANDLE
  *   - NLS_CELL_ARRAY - a heterogenous array - essentially an array of ArrayOfs
  *   - NLS_STRUCT_ARRAY - a structure array
@@ -103,11 +103,6 @@ private:
      * directly associated with this data object.
      */
     Data* dp;
-    /**
-     * Add another fieldname to our structure array.
-     */
-    indexType
-    insertFieldName(const std::string& fieldName);
     /** Get a binary map from an array over the given range.
      * This member function converts an array into a boolean vector,
      * mathematically $$b(a(i)-1) = \mathrm{true}, 0 \leq i < \mathrm{maxD}$$,
@@ -296,6 +291,14 @@ public:
      */
     void
     reshape(Dimensions& a, bool checkValidDimension = true);
+
+    /** change dimensions of array (in place)
+     * class and struct not supported
+     * Throws an exception if the new dimension has a different number of elements
+     * than we currently have.
+     */
+    void
+    changeInPlaceDimensions(const Dimensions& a);
 
     /**
      * Get our data class (of type Class).
@@ -515,11 +518,25 @@ public:
      * Throwsn an exception if the argument is not a vector.
      */
     static ArrayOf
-    diagonalConstructor(ArrayOf src, int diagonalOrder);
+    diagonalConstructor(ArrayOf src, int64 diagonalOrder);
+
+    /**
+     * Get the diagonal elements of an array.  Only applicable to 2-dimensional arrays.
+     * The diagonal part of a rectangular matrix
+     * is a vector of length K.  For an M x N matrix, the L order diagonal has a length
+     * that can be calculated as:
+     *    K = min(M,N-L) for L > 0 or
+     *    K = min(M+L,N) for L < 0
+     * Throws an exception for multi-dimensional arrays.
+     */
+    ArrayOf
+    getDiagonal(int64 diagonalOrder);
 
     /**
      * Empty constructor
      */
+    static ArrayOf
+    emptyCell(const Dimensions& dim);
     static ArrayOf
     emptyConstructor(const Dimensions& dim, bool bIsSparse = false);
     static ArrayOf
@@ -794,7 +811,11 @@ public:
      */
     ArrayOf
     getField(const std::string& fieldName);
-
+    /**
+     * Add another fieldname to our structure array.
+     */
+    indexType
+    insertFieldName(const std::string& fieldName);
     /**
      * Get the contents of a field as an array from its field name.  This is used
      * when a structure array is used to supply a list of expressions.
@@ -1146,9 +1167,6 @@ public:
     isNumeric() const;
 
     void
-    scalarToMatrix(Dimensions& newDimensions);
-
-    void
     deleteArrayOf(void* dp, Class dataclass);
 
     /*
@@ -1228,6 +1246,22 @@ public:
     static ArrayOf
     toStringArray(ArrayOf m, bool& needToOverload);
     //=========================================================================
+    // graphic object handle
+    //=========================================================================
+    /*
+     * check is graphic object handle type
+     */
+    bool
+    isGraphicObject() const;
+
+    static ArrayOf
+    graphicObjectConstructor(void* ptrObject);
+
+    /*
+     * return nelson_handle as void *
+     */
+    void*
+    getContentAsGraphicObjectScalar() const;
 };
 //=========================================================================
 bool

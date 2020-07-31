@@ -135,7 +135,7 @@ Data::getStructTypeName()
 void
 Data::setStructTypeName(const std::string& typeName)
 {
-    structTypeName = std::move(typeName);
+    structTypeName = typeName;
 }
 
 int
@@ -161,6 +161,10 @@ Data::freeDataBlock()
             } break;
             case NLS_STRING_ARRAY: {
                 auto* rp = static_cast<ArrayOf*>(cp);
+                delete[] rp;
+            } break;
+            case NLS_GO_HANDLE: {
+                auto* rp = static_cast<nelson_handle*>(cp);
                 delete[] rp;
             } break;
             case NLS_HANDLE: {

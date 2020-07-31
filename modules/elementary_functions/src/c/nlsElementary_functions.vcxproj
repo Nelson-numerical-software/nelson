@@ -98,7 +98,6 @@
       <DisableSpecificWarnings>4290;4251</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -117,7 +116,6 @@
       <DisableSpecificWarnings>4290;4251</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -138,7 +136,6 @@
       <DisableSpecificWarnings>4290;4251</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -161,7 +158,6 @@
       <DisableSpecificWarnings>4290;4251</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -189,6 +185,31 @@
     <ClCompile Include="..\cpp\DotLeftDivide.cpp" />
     <ClCompile Include="..\cpp\DotPower.cpp" />
     <ClCompile Include="..\cpp\DotRightDivide.cpp" />
+    <ClCompile Include="..\cpp\FindCommonClass.cpp" />
+    <ClCompile Include="..\cpp\Flip.cpp" />
+    <ClCompile Include="..\cpp\LeastSquareSolver.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="..\cpp\LinearEquationSolver.cpp" />
+    <ClCompile Include="..\cpp\Logarithm10.cpp" />
+    <ClCompile Include="..\cpp\Logarithm1p.cpp" />
+    <ClCompile Include="..\cpp\Logarithm2.cpp" />
+    <ClCompile Include="..\cpp\Maximum.cpp" />
+    <ClCompile Include="..\cpp\Mean.cpp" />
+    <ClCompile Include="..\cpp\Minimum.cpp" />
+    <ClCompile Include="..\cpp\Sort.cpp" />
+    <ClCompile Include="..\cpp\SortCellHelpers.cpp" />
+    <ClCompile Include="..\cpp\SortStringHelpers.cpp" />
+    <ClCompile Include="..\cpp\Sum.cpp" />
+    <ClCompile Include="..\cpp\SVDDecomposition.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="..\cpp\SwapBytes.cpp" />
     <ClCompile Include="..\cpp\Equals.cpp" />
     <ClCompile Include="..\cpp\Exponential.cpp" />
@@ -236,6 +257,21 @@
     <ClCompile Include="dllMain.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\cpp\AdditionComplex.hpp" />
+    <ClInclude Include="..\cpp\AdditionInteger.hpp" />
+    <ClInclude Include="..\cpp\AdditionReal.hpp" />
+    <ClInclude Include="..\cpp\DotRightDivideComplex.hpp" />
+    <ClInclude Include="..\cpp\DotRightDivideInteger.hpp" />
+    <ClInclude Include="..\cpp\DotRightDivideReal.hpp" />
+    <ClInclude Include="..\cpp\SortCellHelpers.hpp" />
+    <ClInclude Include="..\cpp\SortComplexHelpers.hpp" />
+    <ClInclude Include="..\cpp\SortHelpers.hpp" />
+    <ClInclude Include="..\cpp\SortIntegerHelpers.hpp" />
+    <ClInclude Include="..\cpp\SortRealHelpers.hpp" />
+    <ClInclude Include="..\cpp\SortStringHelpers.hpp" />
+    <ClInclude Include="..\cpp\SubtractionComplex.hpp" />
+    <ClInclude Include="..\cpp\SubtractionInteger.hpp" />
+    <ClInclude Include="..\cpp\SubtractionReal.hpp" />
     <ClInclude Include="..\include\AbsoluteValue.hpp" />
     <ClInclude Include="..\include\Addition.hpp" />
     <ClInclude Include="..\include\All.hpp" />
@@ -255,6 +291,8 @@
     <ClInclude Include="..\include\DotRightDivide.hpp" />
     <ClInclude Include="..\include\Equals.hpp" />
     <ClInclude Include="..\include\Exponential.hpp" />
+    <ClInclude Include="..\include\FindCommonClass.hpp" />
+    <ClInclude Include="..\include\Flip.hpp" />
     <ClInclude Include="..\include\GreaterEquals.hpp" />
     <ClInclude Include="..\include\GreaterThan.hpp" />
     <ClInclude Include="..\include\HorzCat.hpp" />
@@ -265,10 +303,18 @@
     <ClInclude Include="..\include\IsInf.hpp" />
     <ClInclude Include="..\include\IsMissing.hpp" />
     <ClInclude Include="..\include\IsNaN.hpp" />
+    <ClInclude Include="..\include\LeastSquareSolver.hpp" />
     <ClInclude Include="..\include\LeftDivide.hpp" />
     <ClInclude Include="..\include\LessEquals.hpp" />
     <ClInclude Include="..\include\LessThan.hpp" />
+    <ClInclude Include="..\include\LinearEquationSolver.hpp" />
+    <ClInclude Include="..\include\Logarithm10.hpp" />
+    <ClInclude Include="..\include\Logarithm1p.hpp" />
+    <ClInclude Include="..\include\Logarithm2.hpp" />
     <ClInclude Include="..\include\MatrixMultiplication.hpp" />
+    <ClInclude Include="..\include\Maximum.hpp" />
+    <ClInclude Include="..\include\Mean.hpp" />
+    <ClInclude Include="..\include\Minimum.hpp" />
     <ClInclude Include="..\include\Modulo.hpp" />
     <ClInclude Include="..\include\NaturalLogarithm.hpp" />
     <ClInclude Include="..\include\Negate.hpp" />
@@ -283,10 +329,13 @@
     <ClInclude Include="..\include\RelationOperator.hpp" />
     <ClInclude Include="..\include\Remainder.hpp" />
     <ClInclude Include="..\include\RightDivide.hpp" />
+    <ClInclude Include="..\include\Sort.hpp" />
     <ClInclude Include="..\include\Sqrt.hpp" />
     <ClInclude Include="..\include\StringArrayAddition.hpp" />
     <ClInclude Include="..\include\Subtraction.hpp" />
     <ClInclude Include="..\include\ElementWiseMultiplication.hpp" />
+    <ClInclude Include="..\include\Sum.hpp" />
+    <ClInclude Include="..\include\SVDDecomposition.hpp" />
     <ClInclude Include="..\include\SwapBytes.hpp" />
     <ClInclude Include="..\include\Transpose.hpp" />
     <ClInclude Include="..\include\TruncateFunctions.hpp" />

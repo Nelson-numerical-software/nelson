@@ -26,6 +26,7 @@
 #include "IntegerToString.hpp"
 #include "RealPart.hpp"
 #include "i18n.hpp"
+#include "nlsConfig.h"
 //=============================================================================
 namespace Nelson {
 //=============================================================================
@@ -34,7 +35,8 @@ toString(ArrayOf A)
 {
     wstringVector result;
     auto* ptrValue = (double*)A.getDataPointer();
-    for (indexType k = 0; k < A.getDimensions().getElementCount(); k++) {
+    ompIndexType elementCount = A.getDimensions().getElementCount();
+    for (ompIndexType k = 0; k < elementCount; k++) {
         std::wstring str;
         double dvalue = ptrValue[k];
         if (std::isnan(dvalue)) {
@@ -66,7 +68,8 @@ uint64ToString(ArrayOf A)
 {
     wstringVector result;
     auto* ptrValue = (uint64*)A.getDataPointer();
-    for (indexType k = 0; k < A.getDimensions().getElementCount(); k++) {
+    indexType elementCount = A.getDimensions().getElementCount();
+    for (indexType k = 0; k < elementCount; k++) {
         std::wstring str;
         uint64 ivalue = ptrValue[k];
         str = std::to_wstring(ivalue);
@@ -91,6 +94,7 @@ IntegerToString(ArrayOf A, wstringVector& result, std::wstring& error_message)
     }
     Class classA = A.getDataClass();
     switch (classA) {
+    case NLS_GO_HANDLE:
     case NLS_HANDLE:
     case NLS_STRING_ARRAY:
     case NLS_CELL_ARRAY:

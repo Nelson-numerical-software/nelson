@@ -32,8 +32,6 @@
 //=============================================================================
 namespace Nelson {
 //=============================================================================
-using BuiltInFuncPtr = ArrayOfVector (*)(Evaluator*, int, const ArrayOfVector&);
-//=============================================================================
 class NLSINTERPRETER_IMPEXP BuiltInFunctionDef : public FunctionDef
 {
 public:
@@ -51,7 +49,19 @@ public:
     /**
      * The pointer to (address of) the function.
      */
-    BuiltInFuncPtr fptr;
+    void* fptr;
+    /**
+     * Type of builtin;
+     */
+    size_t builtinPrototype;
+
+    bool interleavedComplex;
+    /**
+     * separated or interleaved complex
+     * Nelson uses natively interleaved complex representation
+     * MEX before 2018 version uses separated complex representation
+     */
+
     /**
      * Default constructor.
      */

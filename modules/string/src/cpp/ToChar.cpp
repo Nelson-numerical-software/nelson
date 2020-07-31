@@ -38,9 +38,6 @@ ArrayOfDoubleToChar(const ArrayOf& A)
     std::wstring res;
     res.reserve(A.getLength());
     auto* pDouble = (double*)A.getDataPointer();
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
     for (indexType k = 0; k < A.getLength(); k++) {
         double v = pDouble[k];
         if (IsFinite(v)) {
@@ -142,7 +139,8 @@ ToChar(const ArrayOf& A, bool& needToOverload)
     case NLS_CELL_ARRAY: {
         ArrayOfVector V;
         auto* arg = (ArrayOf*)(A.getDataPointer());
-        for (indexType k = 0; k < A.getDimensions().getElementCount(); k++) {
+        indexType elementCount = A.getDimensions().getElementCount();
+        for (indexType k = 0; k < elementCount; k++) {
             ArrayOf val = ToChar(arg[k], needToOverload);
             if (needToOverload) {
                 return res;

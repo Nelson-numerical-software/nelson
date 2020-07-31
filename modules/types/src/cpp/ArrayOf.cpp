@@ -43,7 +43,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 //=============================================================================
+#include "lapack_eigen.hpp"
+#include <Eigen/src/misc/lapacke.h>
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <cinttypes>
@@ -155,21 +158,14 @@ ArrayOf::toOrdinalType()
         const logical* rp = (const logical*)dp->getData();
         int indexCount = 0;
         indexType len = getLength();
-        indexType i = 0;
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (i = 0; i < len; i++)
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++)
             if (rp[i] != 0) {
                 indexCount++;
             }
         // Allocate space to hold the new type.
         indexType* lp = new_with_exception<indexType>(indexCount, false);
         indexType* qp = lp;
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (i = 0; i < len; i++)
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++)
             if (rp[i] != 0) {
                 *qp++ = (indexType)(i + 1);
             }
@@ -304,10 +300,7 @@ ArrayOf::toOrdinalType()
         indexType ndx;
         // Allocate space to hold the new type
         indexType* lp = new_with_exception<indexType>(len, false);
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (indexType i = 0; i < len; i++) {
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++) {
             if (rp[i] > std::numeric_limits<indexType>::max()) {
                 Error(_W("Too big index encountered."));
             }
@@ -329,10 +322,7 @@ ArrayOf::toOrdinalType()
         indexType ndx;
         // Allocate space to hold the new type
         indexType* lp = new_with_exception<indexType>(len, false);
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (indexType i = 0; i < len; i++) {
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++) {
             ndx = rp[i];
             if (rp[i] <= 0) {
                 Error(_W("Zero or negative index encountered."));
@@ -351,10 +341,7 @@ ArrayOf::toOrdinalType()
         indexType ndx;
         // Allocate space to hold the new type
         indexType* lp = new_with_exception<indexType>(len, false);
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (indexType i = 0; i < len; i++) {
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++) {
             ndx = rp[i];
             if (rp[i] <= 0) {
                 Error(_W("Zero or negative index encountered."));
@@ -373,10 +360,7 @@ ArrayOf::toOrdinalType()
         indexType ndx;
         // Allocate space to hold the new type
         indexType* lp = new_with_exception<indexType>(len, false);
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (indexType i = 0; i < len; i++) {
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++) {
             ndx = rp[i];
             if (rp[i] <= 0) {
                 Error(_W("Zero or negative index encountered."));
@@ -395,10 +379,7 @@ ArrayOf::toOrdinalType()
         indexType ndx;
         // Allocate space to hold the new type
         indexType* lp = new_with_exception<indexType>(len, false);
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (indexType i = 0; i < len; i++) {
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++) {
             ndx = rp[i];
             if (rp[i] <= 0) {
                 Error(_W("Zero or negative index encountered."));
@@ -417,10 +398,7 @@ ArrayOf::toOrdinalType()
         indexType ndx;
         // Allocate space to hold the new type
         indexType* lp = new_with_exception<indexType>(len, false);
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (indexType i = 0; i < len; i++) {
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++) {
             ndx = rp[i];
             if (rp[i] <= 0) {
                 Error(_W("Zero or negative index encountered."));
@@ -439,10 +417,7 @@ ArrayOf::toOrdinalType()
         indexType ndx;
         // Allocate space to hold the new type
         indexType* lp = new_with_exception<indexType>(len, false);
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-        for (indexType i = 0; i < len; i++) {
+        for (ompIndexType i = 0; i < (ompIndexType)len; i++) {
             ndx = rp[i];
             if (rp[i] <= 0) {
                 Error(_W("Zero or negative index encountered."));
@@ -454,6 +429,9 @@ ArrayOf::toOrdinalType()
 #else
         dp = dp->putData(NLS_UINT32, dp->getDimensions(), lp);
 #endif
+    } break;
+    case NLS_GO_HANDLE: {
+        Error(_W("Cannot convert handle arrays to indices."));
     } break;
     case NLS_HANDLE: {
         Error(_W("Cannot convert handle arrays to indices."));
@@ -623,128 +601,6 @@ ArrayOf::setDataPointer(void* rp)
 }
 //=============================================================================
 void
-ArrayOf::scalarToMatrix(Dimensions& newDimensions)
-{
-    if (isSparse()) {
-        Error(_W("Sparse not supported."));
-    }
-    if (!isScalar()) {
-        Error(ERROR_SCALAR_EXPECTED);
-    }
-    if (newDimensions.isScalar()) {
-        return;
-    }
-    resize(newDimensions);
-    switch (dp->dataClass) {
-    case NLS_LOGICAL: {
-        logical* ptr = (logical*)dp->getWriteableData();
-        logical symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_UINT8: {
-        uint8* ptr = (uint8*)dp->getWriteableData();
-        uint8 symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_INT8: {
-        int8* ptr = (int8*)dp->getWriteableData();
-        int8 symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_UINT16: {
-        uint16* ptr = (uint16*)dp->getWriteableData();
-        uint16 symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_INT16: {
-        int16* ptr = (int16*)dp->getWriteableData();
-        int16 symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_UINT32: {
-        uint32* ptr = (uint32*)dp->getWriteableData();
-        uint32 symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_INT32: {
-        int32* ptr = (int32*)dp->getWriteableData();
-        int32 symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_UINT64: {
-        uint64* ptr = (uint64*)dp->getWriteableData();
-        uint64 symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_INT64: {
-        int64* ptr = (int64*)dp->getWriteableData();
-        int64 symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_SINGLE: {
-        single* ptr = (single*)dp->getWriteableData();
-        single symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_DOUBLE: {
-        double* ptr = (double*)dp->getWriteableData();
-        double symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    case NLS_SCOMPLEX: {
-        single* ptr = (single*)dp->getWriteableData();
-        single symbolR = ptr[0];
-        single symbolI = ptr[1];
-        for (indexType k = 0; k < getDimensions().getElementCount() * 2; k = k + 2) {
-            ptr[k] = symbolR;
-            ptr[k + 1] = symbolI;
-        }
-    } break;
-    case NLS_DCOMPLEX: {
-        double* ptr = (double*)dp->getWriteableData();
-        double symbolR = ptr[0];
-        double symbolI = ptr[1];
-        for (indexType k = 0; k < getDimensions().getElementCount() * 2; k = k + 2) {
-            ptr[k] = symbolR;
-            ptr[k + 1] = symbolI;
-        }
-    } break;
-    case NLS_CHAR: {
-        charType* ptr = (charType*)dp->getWriteableData();
-        charType symbol = ptr[0];
-        for (indexType k = 0; k < getDimensions().getElementCount(); k++) {
-            ptr[k] = symbol;
-        }
-    } break;
-    default: {
-        Error(_W("Type not supported."));
-    } break;
-    }
-}
-//=============================================================================
-void
 ArrayOf::resize(Dimensions& a)
 {
     Dimensions newSize;
@@ -857,6 +713,21 @@ ArrayOf::reshape(Dimensions& a, bool checkValidDimension)
     }
 }
 //=============================================================================
+void
+ArrayOf::changeInPlaceDimensions(const Dimensions& a)
+{
+    if (isClassStruct()) {
+        Error(_W("changeDimensions operation not allowed for overloaded type."));
+    }
+    if (isFunctionHandle()) {
+        Error(_W("changeDimensions operation not allowed for 'function_handle' type."));
+    }
+    if (a.getElementCount() != getLength()) {
+        Error(_W("changeDimensions operation cannot change the number of elements in array."));
+    }
+    dp->dimensions = a;
+}
+//=============================================================================
 /**
  * Get our data class (of type Class).
  */
@@ -880,6 +751,8 @@ ArrayOf::getElementSize() const
         Error(_W("Invalid data class."));
     }
     switch (dp->dataClass) {
+    case NLS_GO_HANDLE:
+        return sizeof(nelson_handle);
     case NLS_HANDLE:
         return sizeof(nelson_handle);
     case NLS_STRING_ARRAY:
@@ -935,44 +808,60 @@ ArrayOf::getByteSize() const
 /**
  * Returns true if we are positive.
  */
-#define caseMacro(caseLabel, dpType)                                                               \
-    case caseLabel: {                                                                              \
-        const dpType* qp = (const dpType*)dp->getData();                                           \
-        bool allPositive = true;                                                                   \
-        indexType len = getLength();                                                               \
-        indexType i = 0;                                                                           \
-        while (allPositive && (i < len)) {                                                         \
-            allPositive = allPositive && (qp[i] >= 0);                                             \
-            i++;                                                                                   \
-        }                                                                                          \
-        return allPositive;                                                                        \
+template <class T>
+bool
+isTPositive(const void* data, indexType len)
+{
+    const T* qp = (const T*)data;
+    for (indexType i = 0; i < len; ++i) {
+        if (qp[i] < 0) {
+            return false;
+        }
     }
+    return true;
+}
 //=============================================================================
 bool
 ArrayOf::isPositive() const
 {
-    if (dp->dataClass == NLS_UINT8 || dp->dataClass == NLS_UINT16 || dp->dataClass == NLS_UINT32
-        || dp->dataClass == NLS_UINT64) {
-        return true;
-    }
-    if (dp->dataClass == NLS_SCOMPLEX || dp->dataClass == NLS_DCOMPLEX) {
-        return false;
-    }
     if (isSparse()) {
-        Error(_W("isPositive not supported for sparse arrays."));
+        switch (dp->dataClass) {
+        case NLS_DCOMPLEX:
+            return false;
+        case NLS_DOUBLE: {
+            Eigen::SparseMatrix<double, 0, signedIndexType>* spMat
+                = (Eigen::SparseMatrix<double, 0, signedIndexType>*)dp->getData();
+            return isTPositive<double>(spMat->valuePtr(), spMat->nonZeros());
+        } break;
+        default:
+            return false;
+        }
     }
+
     switch (dp->dataClass) {
-        caseMacro(NLS_SINGLE, single);
-        caseMacro(NLS_DOUBLE, double);
-        caseMacro(NLS_INT8, int8);
-        caseMacro(NLS_INT16, int16);
-        caseMacro(NLS_INT32, int32);
-        caseMacro(NLS_INT64, int64);
+    case NLS_UINT8:
+    case NLS_UINT16:
+    case NLS_UINT32:
+    case NLS_UINT64:
+        return true;
+    case NLS_SCOMPLEX:
+    case NLS_DCOMPLEX:
+        return false;
+    case NLS_SINGLE:
+        return isTPositive<single>(dp->getData(), getLength());
+    case NLS_DOUBLE:
+        return isTPositive<double>(dp->getData(), getLength());
+    case NLS_INT8:
+        return isTPositive<int8>(dp->getData(), getLength());
+    case NLS_INT16:
+        return isTPositive<int16>(dp->getData(), getLength());
+    case NLS_INT32:
+        return isTPositive<int32>(dp->getData(), getLength());
+    case NLS_INT64:
+        return isTPositive<int64>(dp->getData(), getLength());
     }
     return false;
 }
-//=============================================================================
-#undef caseMacro
 //=============================================================================
 #define caseMacroReal(caseLabel, type)                                                             \
     case caseLabel:                                                                                \
@@ -1025,6 +914,7 @@ ArrayOf::testCaseMatchScalar(ArrayOf x) const
     case NLS_CELL_ARRAY:
     case NLS_STRING_ARRAY:
     case NLS_CHAR:
+    case NLS_GO_HANDLE:
     case NLS_HANDLE:
     case NLS_STRUCT_ARRAY:
         retval = false;
@@ -1149,7 +1039,8 @@ bool
 ArrayOf::isReferenceType() const
 {
     return (dp->dataClass == NLS_STRUCT_ARRAY) || (dp->dataClass == NLS_CELL_ARRAY)
-        || (dp->dataClass == NLS_STRING_ARRAY) || (dp->dataClass == NLS_HANDLE);
+        || (dp->dataClass == NLS_STRING_ARRAY) || (dp->dataClass == NLS_HANDLE)
+        || (dp->dataClass == NLS_GO_HANDLE);
 }
 //=============================================================================
 /**
@@ -1203,12 +1094,21 @@ ArrayOf::allReal() const
         if (isEmpty(true)) {
             res = true;
         } else {
-            double* pdouble = (double*)dp->getData();
-            doublecomplex* Bz = reinterpret_cast<doublecomplex*>(pdouble);
-            Eigen::Map<Eigen::MatrixXcd> mat(Bz, 1, dp->getDimensions().getElementCount());
-            res = mat.imag().isZero(0);
+            if (isSparse()) {
+                Eigen::SparseMatrix<doublecomplex, 0, signedIndexType>* spCplxMat
+                    = (Eigen::SparseMatrix<doublecomplex, 0, signedIndexType>*)dp->getData();
+                Eigen::SparseMatrix<double, 0, signedIndexType> spImgMat = spCplxMat->imag();
+                Eigen::Map<Eigen::MatrixXd> mat(spImgMat.valuePtr(), 1, spImgMat.nonZeros());
+                res = mat.isZero(0);
+            } else {
+                double* pdouble = (double*)dp->getData();
+                doublecomplex* Bz = reinterpret_cast<doublecomplex*>(pdouble);
+                Eigen::Map<Eigen::MatrixXcd> mat(Bz, 1, dp->getDimensions().getElementCount());
+                res = mat.imag().isZero(0);
+            }
         }
     } break;
+    case NLS_GO_HANDLE:
     case NLS_HANDLE:
     case NLS_CELL_ARRAY:
     case NLS_STRING_ARRAY:
@@ -1257,6 +1157,42 @@ ArrayOf::copyElements(indexType srcIndex, void* dstPtr, indexType dstIndex, inde
             }
         }
     } break;
+    case NLS_SCOMPLEX: {
+        single* src = (single*)dp->getData();
+        if (src != nullptr) {
+            int iSize = (int)count;
+            single* dst = (single*)dstPtr;
+            int one = 1;
+            BLASFUNC(ccopy)(&iSize, src + (srcIndex * 2), &one, dst + (dstIndex * 2), &one);
+        }
+    } break;
+    case NLS_DCOMPLEX: {
+        double* src = (double*)dp->getData();
+        if (src != nullptr) {
+            int iSize = (int)count;
+            double* dst = (double*)dstPtr;
+            int one = 1;
+            BLASFUNC(zcopy)(&iSize, src + (srcIndex * 2), &one, dst + (dstIndex * 2), &one);
+        }
+    } break;
+    case NLS_SINGLE: {
+        single* src = (single*)dp->getData();
+        if (src != nullptr) {
+            int iSize = (int)count;
+            single* dst = (single*)dstPtr;
+            int one = 1;
+            BLASFUNC(scopy)(&iSize, src + srcIndex, &one, dst + dstIndex, &one);
+        }
+    } break;
+    case NLS_DOUBLE: {
+        double* src = (double*)dp->getData();
+        if (src != nullptr) {
+            int iSize = (int)count;
+            double* dst = (double*)dstPtr;
+            int one = 1;
+            BLASFUNC(dcopy)(&iSize, src + srcIndex, &one, dst + dstIndex, &one);
+        }
+    } break;
     default: {
         const char* sp = (const char*)dp->getData();
         if (sp != nullptr) {
@@ -1285,645 +1221,7 @@ isDoubleOrSingleClass(Class classIn)
     return (isSingleClass(classIn) || isDoubleClass(classIn));
 }
 //=============================================================================
-template <typename TIN, typename TOUT>
-inline TOUT
-numeric_cast(TIN value)
-{
-    const bool positive_overflow_possible
-        = std::numeric_limits<TOUT>::max() < std::numeric_limits<TIN>::max();
-    const bool negative_overflow_possible = std::numeric_limits<TIN>::is_signed
-        || (std::numeric_limits<TOUT>::lowest() > std::numeric_limits<TIN>::lowest());
-
-    // unsigned <-- unsigned
-    if ((!std::numeric_limits<TOUT>::is_signed) && (!std::numeric_limits<TIN>::is_signed)) {
-        if (positive_overflow_possible && (value > std::numeric_limits<TOUT>::max())) {
-            return std::numeric_limits<TOUT>::max();
-        }
-    }
-    // unsigned <-- signed
-    else if ((!std::numeric_limits<TOUT>::is_signed) && std::numeric_limits<TIN>::is_signed) {
-        if (positive_overflow_possible && (value > std::numeric_limits<TOUT>::max())) {
-            return std::numeric_limits<TOUT>::max();
-        } else if (negative_overflow_possible && (value < 0)) {
-            return std::numeric_limits<TOUT>::min();
-        }
-    }
-    // signed <-- unsigned
-    else if (std::numeric_limits<TOUT>::is_signed && (!std::numeric_limits<TIN>::is_signed)) {
-        if (positive_overflow_possible && (value > std::numeric_limits<TOUT>::max())) {
-            return std::numeric_limits<TOUT>::max();
-        }
-    }
-    // signed <-- signed
-    else if (std::numeric_limits<TOUT>::is_signed && std::numeric_limits<TIN>::is_signed) {
-        if (positive_overflow_possible && (value > std::numeric_limits<TOUT>::max())) {
-            return std::numeric_limits<TOUT>::max();
-        } else if (negative_overflow_possible && (value < std::numeric_limits<TOUT>::lowest())) {
-            return std::numeric_limits<TOUT>::min();
-        }
-    }
-    return static_cast<TOUT>(value);
-}
-//=============================================================================
-template <class TIN, class TOUT>
-void
-saturate(Class classIn, Class classOut, const void* pIn, void* pOut, indexType count)
-{
-    const TIN* sp = (const TIN*)pIn;
-    TOUT* qp = (TOUT*)pOut;
-    if (classIn == classOut) {
-        for (indexType i = 0; i < count; i++) {
-            qp[i] = (TOUT)sp[i];
-        }
-    } else {
-        bool checkNaN = false;
-        if (typeid(TOUT) != typeid(single) || typeid(TOUT) != typeid(double)) {
-            if (typeid(TIN) == typeid(single) || typeid(TIN) == typeid(double)) {
-                checkNaN = true;
-            }
-        }
-        if (checkNaN) {
-            for (indexType i = 0; i < count; i++) {
-                if (std::isnan((double)sp[i])) {
-                    qp[i] = (TOUT)0;
-                } else {
-                    qp[i] = (TOUT)numeric_cast<TIN, TOUT>(sp[i]);
-                }
-            }
-        } else {
-            for (indexType i = 0; i < count; i++) {
-                qp[i] = numeric_cast<TIN, TOUT>(sp[i]);
-            }
-        }
-    }
-}
-//=============================================================================
-/**
- * Promote our data to a new type.
- *
- * Copy data from our data array to the specified
- * array, converting the data as we go.  We can only
- * convert data to or from base types.  So if the source
- * or destination types are reference types, we cannot
- * perform the conversion.
- *
- * For the remaining types, we have a matrix of
- * possibilities.  Here we list the conversion rules.
- *
- * Source type
- *  - string
- *    - logical dest = (source == 0) ? 0 : 1
- *    - real dest = (double) source
- *    - complex dest = (double) source
- *  - logical
- *    - string dest = (char) source
- *    - real   dest = (double) source
- *    - complex dest = (double) source
- *  - real
- *    - string dest = (char) source
- *    - logical dest = (source == 0) ? 0 : 1
- *    - complex dest = (double) source
- *  - complex
- *    - string dest = (char) real(source)
- *    - logical dest = (real(source) == 0 && imag(source) == 0) ? 0:1
- *    - real dest = real(source)
- */
-void
-ArrayOf::promoteType(Class dstClass, stringVector fNames)
-{
-    indexType elCount = 0;
-    void* dstPtr = nullptr;
-    if (isEmpty()) {
-        dp = dp->putData(dstClass, dp->dimensions, NULL, isSparse(), fNames);
-        return;
-    }
-    if (dp->dataClass == NLS_HANDLE)
-        if (dstClass == NLS_HANDLE) {
-            return;
-        } else {
-            Error(_W("Cannot convert handle-arrays to any other type."));
-        }
-    // Handle the reference types.
-    // Cell arrays can be promoted with no effort to cell arrays.
-    if (dp->dataClass == NLS_CELL_ARRAY)
-        if (dstClass == NLS_CELL_ARRAY) {
-            return;
-        } else {
-            Error(_W("Cannot convert cell-arrays to any other type."));
-        }
-    if (dp->dataClass == NLS_STRING_ARRAY)
-        if (dstClass == NLS_STRING_ARRAY) {
-            return;
-        } else {
-            Error(_W("Cannot convert string-arrays to any other type."));
-        }
-    // Structure arrays can be promoted to structure arrays with different
-    // field structures, but have to be rearranged.
-    if (dp->dataClass == NLS_STRUCT_ARRAY)
-        if (dstClass == NLS_STRUCT_ARRAY) {
-            // TODO(mcallan): Generalize this code to allow for one more field in destination
-            // than in source...
-            if (dp->fieldNames.size() > fNames.size()) {
-                Error(_W("Cannot combine structures with different fields if the "
-                         "combination "
-                         "requires fields to be deleted from one of the structures."));
-            }
-            // We are promoting a struct array to a struct array.
-            // To do so, we have to make sure that the field names work out.
-            // The only thing we must check for is that every field name
-            // in fieldnames is present in fnames.
-            int extraCount = 0;
-            int matchCount = 0;
-            indexType i;
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-            for (i = 0; i < (int)fNames.size(); i++) {
-                int64 ndx = getFieldIndex(fNames[i]);
-                if (ndx == -1) {
-                    extraCount++;
-                } else {
-                    matchCount++;
-                }
-            }
-            // Now, matchCount should be equal to the size of fieldNames
-            if (matchCount != dp->fieldNames.size()) {
-                Error(_W("Cannot combine structures with different fields if the "
-                         "combination "
-                         "requires fields to be deleted from one of the structures."));
-            }
-            void* dstPtr = allocateArrayOf(dp->dataClass, getLength(), fNames, false);
-            const ArrayOf* src_rp = (const ArrayOf*)dp->getData();
-            ArrayOf* dst_rp = (ArrayOf*)dstPtr;
-            indexType elCount(getLength());
-            indexType fieldCount(dp->fieldNames.size());
-            indexType newFieldCount(fNames.size());
-            ;
-            // Now we have to copy our existing fields into the new order...
-#if defined(__NLS_WITH_OPENMP)
-#pragma omp parallel for
-#endif
-            for (i = 0; i < fieldCount; i++) {
-                int64 newNdx = getFieldIndexFromList(dp->fieldNames[i], fNames);
-                for (indexType j = 0; j < elCount; j++) {
-                    dst_rp[j * newFieldCount + newNdx] = src_rp[j * fieldCount + i];
-                }
-            }
-            dp = dp->putData(dp->dataClass, dp->dimensions, dstPtr, false, fNames);
-            return;
-        } else {
-            Error(_W("Cannot convert struct-arrays to any other type."));
-        }
-    // Catch attempts to convert data types to reference types.
-    if ((dstClass == NLS_STRING_ARRAY) || (dstClass == NLS_CELL_ARRAY)
-        || (dstClass == NLS_STRUCT_ARRAY)) {
-        Error(_W("Cannot convert base types to reference types."));
-    }
-    // Do nothing for promoting to same class (no-op).
-    if (isSparse()) {
-        dp = dp->putData(dstClass, dp->dimensions,
-            TypeConvertSparseDynamicFunction(
-                dp->dataClass, dp->dimensions[0], dp->dimensions[1], dp->getData(), dstClass),
-            true);
-        return;
-    }
-    if (dstClass == dp->dataClass) {
-        return;
-    }
-    elCount = getLength();
-    // We have to promote...
-    dstPtr = allocateArrayOf(dstClass, elCount, stringVector(), true);
-    indexType count = elCount;
-    switch (dp->dataClass) {
-#define caseMacro(caseLabel, dpType, convCode)                                                     \
-    case caseLabel: {                                                                              \
-        dpType* qp = (dpType*)dstPtr;                                                              \
-        for (indexType i = 0; i < count; i++)                                                      \
-            convCode;                                                                              \
-    } break;
-    case NLS_CHAR: {
-        charType* sp = (charType*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-            caseMacro(NLS_UINT8, uint8, qp[i] = (uint8)sp[i]);
-            caseMacro(NLS_INT8, int8, qp[i] = (int8)sp[i]);
-            caseMacro(NLS_UINT16, uint16, qp[i] = (uint16)sp[i]);
-            caseMacro(NLS_INT16, int16, qp[i] = (int16)sp[i]);
-            caseMacro(NLS_UINT32, uint32, qp[i] = (uint32)sp[i]);
-            caseMacro(NLS_INT32, int32, qp[i] = (int32)sp[i]);
-            caseMacro(NLS_UINT64, uint64, qp[i] = (uint64)sp[i]);
-            caseMacro(NLS_INT64, int64, qp[i] = (int64)sp[i]);
-        default: { } break; }
-    } break;
-    case NLS_LOGICAL: {
-        const logical* sp = (const logical*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-            caseMacro(NLS_UINT8, uint8, qp[i] = (uint8)sp[i]);
-            caseMacro(NLS_INT8, int8, qp[i] = (int8)sp[i]);
-            caseMacro(NLS_UINT16, uint16, qp[i] = (uint16)sp[i]);
-            caseMacro(NLS_INT16, int16, qp[i] = (int16)sp[i]);
-            caseMacro(NLS_UINT32, uint32, qp[i] = (uint32)sp[i]);
-            caseMacro(NLS_INT32, int32, qp[i] = (int32)sp[i]);
-            caseMacro(NLS_UINT64, uint64, qp[i] = (uint64)sp[i]);
-            caseMacro(NLS_INT64, int64, qp[i] = (int64)sp[i]);
-        default: { } break; }
-    } break;
-    case NLS_UINT8: {
-        const uint8* sp = (const uint8*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_INT8: {
-            saturate<uint8, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<uint8, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<uint8, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<uint8, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<uint8, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<uint8, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<uint8, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_INT8: {
-        const int8* sp = (const int8*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_UINT8: {
-            saturate<int8, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<int8, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<int8, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<int8, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<int8, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<int8, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<int8, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_UINT16: {
-        const uint16* sp = (const uint16*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_UINT8: {
-            saturate<uint16, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT8: {
-            saturate<uint16, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<uint16, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<uint16, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<uint16, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<uint16, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<uint16, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_INT16: {
-        const int16* sp = (const int16*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_UINT8: {
-            saturate<int16, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT8: {
-            saturate<int16, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<int16, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<int16, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<int16, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<int16, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<int16, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_UINT32: {
-        const uint32* sp = (const uint32*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_INT8: {
-            saturate<uint32, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT8: {
-            saturate<uint32, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<uint32, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<uint32, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<uint32, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<uint32, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<uint32, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_INT32: {
-        const int32* sp = (const int32*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_UINT8: {
-            saturate<int32, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT8: {
-            saturate<int32, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<int32, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<int32, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<int32, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<int32, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<int32, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_INT64: {
-        const int64* sp = (const int64*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_UINT8: {
-            saturate<int64, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT8: {
-            saturate<int64, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<int64, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<int64, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<int64, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<int64, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<int64, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_UINT64: {
-        const uint64* sp = (const uint64*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_UINT8: {
-            saturate<uint64, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT8: {
-            saturate<uint64, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<uint64, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<uint64, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<uint64, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<uint64, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<uint64, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_SINGLE: {
-        const single* sp = (const single*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_UINT8: {
-            saturate<single, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT8: {
-            saturate<single, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<single, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<single, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<single, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<single, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<single, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<single, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_DOUBLE: {
-        const double* sp = (const double*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i]);
-            caseMacro(NLS_LOGICAL, logical, qp[i] = (sp[i] == 0) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i]);
-            caseMacro(NLS_SCOMPLEX, single, qp[i << 1] = (single)sp[i]);
-            caseMacro(NLS_DCOMPLEX, double, qp[i << 1] = (double)sp[i]);
-        case NLS_UINT8: {
-            saturate<double, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT8: {
-            saturate<double, int8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT16: {
-            saturate<double, uint16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT16: {
-            saturate<double, int16>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT32: {
-            saturate<double, uint32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT32: {
-            saturate<double, int32>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_INT64: {
-            saturate<double, int64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        case NLS_UINT64: {
-            saturate<double, uint64>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_SCOMPLEX: {
-        const single* sp = (const single*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i << 1]);
-            caseMacro(NLS_LOGICAL, logical,
-                qp[i] = ((sp[i << 1] == 0.0) && (sp[(i << 1) + 1] == 0.0)) ? 0 : 1);
-        case NLS_SINGLE: {
-            singlecomplex* Az = reinterpret_cast<singlecomplex*>((single*)sp);
-            single* qp = (single*)dstPtr;
-            Eigen::Map<Eigen::MatrixXcf> matA(Az, 1, dp->dimensions.getElementCount());
-            Eigen::Map<Eigen::MatrixXf> matB(qp, 1, dp->dimensions.getElementCount());
-            matB = matA.real();
-        } break;
-            caseMacro(NLS_DOUBLE, double, qp[i] = (double)sp[i << 1]);
-            caseMacro(NLS_DCOMPLEX, double, {
-                qp[i << 1] = (double)sp[i << 1];
-                qp[(i << 1) + 1] = (double)sp[(i << 1) + 1];
-            });
-        case NLS_UINT8: {
-            saturate<single, uint8>(dp->dataClass, dstClass, dp->getData(), dstPtr, count);
-        } break;
-        default: { } break; }
-    } break;
-    case NLS_DCOMPLEX: {
-        const double* sp = (const double*)dp->getData();
-        switch (dstClass) {
-            caseMacro(NLS_CHAR, charType, qp[i] = (charType)sp[i << 1]);
-            caseMacro(NLS_LOGICAL, logical,
-                qp[i] = ((sp[i << 1] == 0.0) && (sp[(i << 1) + 1] == 0.0)) ? 0 : 1);
-            caseMacro(NLS_SINGLE, single, qp[i] = (single)sp[i << 1]);
-        case NLS_DOUBLE: {
-            doublecomplex* Az = reinterpret_cast<doublecomplex*>((double*)sp);
-            double* qp = (double*)dstPtr;
-            Eigen::Map<Eigen::MatrixXcd> matA(Az, 1, dp->dimensions.getElementCount());
-            Eigen::Map<Eigen::MatrixXd> matB(qp, 1, dp->dimensions.getElementCount());
-            matB = matA.real();
-        } break;
-            caseMacro(NLS_SCOMPLEX, single, {
-                qp[i << 1] = (single)sp[i << 1];
-                qp[(i << 1) + 1] = (single)sp[(i << 1) + 1];
-            });
-            caseMacro(NLS_UINT8, uint8, qp[i] = (uint8)sp[i << 1]);
-            caseMacro(NLS_INT8, int8, qp[i] = (int8)sp[i << 1]);
-            caseMacro(NLS_UINT16, uint16, qp[i] = (uint16)sp[i << 1]);
-            caseMacro(NLS_INT16, int16, qp[i] = (int16)sp[i << 1]);
-            caseMacro(NLS_UINT32, uint32, qp[i] = (uint32)sp[i << 1]);
-            caseMacro(NLS_INT32, int32, qp[i] = (int32)sp[i << 1]);
-            caseMacro(NLS_UINT64, uint64, qp[i] = (uint64)sp[i << 1]);
-            caseMacro(NLS_INT64, int64, qp[i] = (int64)sp[i << 1]);
-        default: { } break; }
-    } break;
-    }
-    dp = dp->putData(dstClass, dp->dimensions, dstPtr);
-}
-//=============================================================================
 #undef caseMacro
-//=============================================================================
-void
-ArrayOf::promoteType(Class dstClass)
-{
-    stringVector dummy;
-    promoteType(dstClass, dummy);
-}
 //=============================================================================
 indexType
 ArrayOf::getContentAsScalarIndex(bool bWithZero)
@@ -2030,10 +1328,10 @@ DoCountNNZReal(const void* dp, indexType len)
 {
     indexType accum = 0;
     const T* cp = static_cast<const T*>(dp);
-#if defined(__NLS_WITH_OPENMP)
+#if defined(_NLS_WITH_OPENMP)
 #pragma omp parallel for
 #endif
-    for (indexType i = 0; i < len; i++)
+    for (ompIndexType i = 0; i < (ompIndexType)len; i++)
         if (cp[i]) {
             accum++;
         }
@@ -2046,10 +1344,10 @@ DoCountNNZComplex(const void* dp, indexType len)
 {
     indexType accum = 0;
     const T* cp = static_cast<const T*>(dp);
-#if defined(__NLS_WITH_OPENMP)
+#if defined(_NLS_WITH_OPENMP)
 #pragma omp parallel for
 #endif
-    for (indexType i = 0; i < len; i++)
+    for (ompIndexType i = 0; i < (ompIndexType)len; i++)
         if (cp[2 * i] || cp[2 * i + 1]) {
             accum++;
         }

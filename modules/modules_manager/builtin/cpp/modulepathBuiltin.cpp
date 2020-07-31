@@ -40,8 +40,7 @@ using namespace Nelson;
 
 //=============================================================================
 ArrayOfVector
-Nelson::ModulesManagerGateway::modulepathBuiltin(
-    Evaluator* eval, int nLhs, const ArrayOfVector& argIn)
+Nelson::ModulesManagerGateway::modulepathBuiltin(int nLhs, const ArrayOfVector& argIn)
 {
     // st = modulepath('existing_module')
     // return a struct with different paths of an existing module (shortname)
@@ -88,19 +87,19 @@ Nelson::ModulesManagerGateway::modulepathBuiltin(
         } else {
             Error(ERROR_WRONG_ARGUMENT_3_TYPE_STRING_EXPECTED);
         }
-        if (option.compare(STR_OPTION_ETC) == 0) {
+        if (option == STR_OPTION_ETC) {
             retval.push_back(ArrayOf::characterArrayConstructor(
                 ModulePath(modulerootpath, moduleshortname, GET_ETC_PATH)));
-        } else if (option.compare(STR_OPTION_BIN) == 0) {
+        } else if (option == STR_OPTION_BIN) {
             retval.push_back(ArrayOf::characterArrayConstructor(
                 ModulePath(modulerootpath, moduleshortname, GET_BINARY_PATH)));
-        } else if (option.compare(STR_OPTION_ROOT) == 0) {
+        } else if (option == STR_OPTION_ROOT) {
             retval.push_back(ArrayOf::characterArrayConstructor(
                 ModulePath(modulerootpath, moduleshortname, GET_ROOT_PATH)));
-        } else if (option.compare(STR_OPTION_BUILTIN) == 0) {
+        } else if (option == STR_OPTION_BUILTIN) {
             retval.push_back(ArrayOf::characterArrayConstructor(
                 ModulePath(modulerootpath, moduleshortname, GET_DYNLIB_FULLPATH)));
-        } else if (option.compare(STR_OPTION_SCRIPTS) == 0) {
+        } else if (option == STR_OPTION_SCRIPTS) {
             retval.push_back(ArrayOf::characterArrayConstructor(
                 ModulePath(modulerootpath, moduleshortname, GET_SCRIPT_PATH)));
         } else {

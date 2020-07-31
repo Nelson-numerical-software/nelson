@@ -215,11 +215,15 @@
     <ClCompile Include="..\cpp\AstManager.cpp" />
     <ClCompile Include="..\cpp\BuiltInFunctionDef.cpp" />
     <ClCompile Include="..\cpp\BuiltInFunctionDefManager.cpp" />
+    <ClCompile Include="..\cpp\CallMexBuiltin.cpp" />
     <ClCompile Include="..\cpp\CheckIfWhileCondition.cpp" />
+    <ClCompile Include="..\cpp\ColonOperator.cpp" />
     <ClCompile Include="..\cpp\CommandQueue.cpp" />
     <ClCompile Include="..\cpp\Comments.cpp" />
     <ClCompile Include="..\cpp\Context.cpp" />
     <ClCompile Include="..\cpp\DebugStack.cpp" />
+    <ClCompile Include="..\cpp\DotLeftDivideOperator.cpp" />
+    <ClCompile Include="..\cpp\DotRightDivideOperator.cpp" />
     <ClCompile Include="..\cpp\EqOperator.cpp" />
     <ClCompile Include="..\cpp\ErrorEmitter.cpp" />
     <ClCompile Include="..\cpp\EvaluateBuiltinCatchRuntimeException.cpp">
@@ -235,11 +239,13 @@
     <ClCompile Include="..\cpp\FileWatcher\FileWatcher.cpp" />
     <ClCompile Include="..\cpp\FileWatcher\FileWatcherWin32.cpp" />
     <ClCompile Include="..\cpp\FunctionDef.cpp" />
+    <ClCompile Include="..\cpp\GatewayHelpers.cpp" />
     <ClCompile Include="..\cpp\GeOperator.cpp" />
     <ClCompile Include="..\cpp\GetNelsonMainEvaluatorDynamicFunction.cpp" />
     <ClCompile Include="..\cpp\GtOperator.cpp" />
     <ClCompile Include="..\cpp\HorzCatOperator.cpp" />
     <ClCompile Include="..\cpp\Keywords.cpp" />
+    <ClCompile Include="..\cpp\LeftDivideOperator.cpp" />
     <ClCompile Include="..\cpp\LeOperator.cpp" />
     <ClCompile Include="..\cpp\LocalFunctionsTable.cpp" />
     <ClCompile Include="..\cpp\LtOperator.cpp" />
@@ -257,6 +263,7 @@
     <ClCompile Include="..\cpp\PathFuncManager.cpp" />
     <ClCompile Include="..\cpp\ProcessEventsDynamicFunction.cpp" />
     <ClCompile Include="..\cpp\ProfilerHelpers.cpp" />
+    <ClCompile Include="..\cpp\RightDivideOperator.cpp" />
     <ClCompile Include="..\cpp\Scope.cpp" />
     <ClCompile Include="..\cpp\ShortCutAndOperator.cpp" />
     <ClCompile Include="..\cpp\ShortCutOrOperator.cpp" />
@@ -309,6 +316,7 @@
     <ResourceCompile Include="resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\cpp\CallMexBuiltin.hpp" />
     <ClInclude Include="..\grammar\NelSonParser.h" />
     <ClInclude Include="..\include\ActionMenu.hpp" />
     <ClInclude Include="..\include\AST.hpp" />
@@ -327,6 +335,8 @@
     <ClInclude Include="..\include\FileParser.hpp" />
     <ClInclude Include="..\include\FileWatcherManager.hpp" />
     <ClInclude Include="..\include\FunctionDef.hpp" />
+    <ClInclude Include="..\include\GatewayHelpers.hpp" />
+    <ClInclude Include="..\include\GenericTable.hpp" />
     <ClInclude Include="..\include\GetNelsonMainEvaluatorDynamicFunction.hpp" />
     <ClInclude Include="..\include\HorzCatOperator.hpp" />
     <ClInclude Include="..\include\Keywords.hpp" />

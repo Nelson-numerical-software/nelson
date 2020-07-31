@@ -26,11 +26,12 @@
 #include "zerosBuiltin.hpp"
 #include "Error.hpp"
 #include "Zeros.hpp"
+#include "nlsConfig.h"
 //=============================================================================
 using namespace Nelson;
 //=============================================================================
 ArrayOfVector
-Nelson::ConstructorsGateway::zerosBuiltin(Evaluator* eval, int nLhs, const ArrayOfVector& argIn)
+Nelson::ConstructorsGateway::zerosBuiltin(int nLhs, const ArrayOfVector& argIn)
 {
     ArrayOfVector retval;
     if (nLhs > 1) {
@@ -154,7 +155,8 @@ Nelson::ConstructorsGateway::zerosBuiltin(Evaluator* eval, int nLhs, const Array
                         ArrayOf dimVector = argIn[0];
                         dimVector.promoteType(NLS_DOUBLE);
                         auto* ptrValues = (double*)dimVector.getDataPointer();
-                        for (sizeType k = 0; k < argIn[0].getDimensions().getElementCount(); k++) {
+                        ompIndexType elementCount = argIn[0].getDimensions().getElementCount();
+                        for (ompIndexType k = 0; k < elementCount; k++) {
                             if (ptrValues[k] > 0) {
                                 dims[k] = static_cast<indexType>(ptrValues[k]);
                             } else {

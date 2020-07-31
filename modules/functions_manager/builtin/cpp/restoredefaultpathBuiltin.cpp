@@ -33,8 +33,7 @@
 using namespace Nelson;
 //=============================================================================
 ArrayOfVector
-Nelson::FunctionsGateway::restoredefaultpathBuiltin(
-    Evaluator* eval, int nLhs, const ArrayOfVector& argIn)
+Nelson::FunctionsGateway::restoredefaultpathBuiltin(int nLhs, const ArrayOfVector& argIn)
 {
     ArrayOfVector retval;
     if (nLhs != 0) {
@@ -60,7 +59,7 @@ Nelson::FunctionsGateway::restoredefaultpathBuiltin(
             bRes = false;
         }
         if (bRes) {
-            PathFuncManager::getInstance()->addPath(_path, true);
+            PathFuncManager::getInstance()->addPath(_path, true, false);
         }
     }
     return retval;

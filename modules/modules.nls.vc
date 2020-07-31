@@ -24,8 +24,8 @@
 // LICENCE_BLOCK_END
 // ============================================================================
 modules_list = [
-"modules_manager";
 "functions_manager";
+"modules_manager";
 "engine";
 "core";
 "localization";
@@ -77,7 +77,9 @@ modules_list = [
 "matio";
 "profiler";
 "characters_encoding";
-"webtools"
+"webtools";
+"graphics";
+"mex"
 ];
 // ============================================================================
 // optional modules
@@ -143,6 +145,8 @@ modules_help_list = [
 "audio";
 "sio_client";
 "file_archiver";
-"webtools"
+"webtools";
+"mex";
+"graphics"
 ];
 // ============================================================================
