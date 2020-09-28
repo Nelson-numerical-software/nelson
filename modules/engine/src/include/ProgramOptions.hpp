@@ -72,6 +72,8 @@ public:
     std::wstring
     getFileToExecute();
     std::wstring
+    getFileToExecuteIPC();
+    std::wstring
     getCommandToExecute();
     std::wstring
     getOptionsHelp();
@@ -92,6 +94,8 @@ public:
     bool
     haveFileToExecute();
     bool
+    haveFileToExecuteIPC();
+    bool
     haveCommandToExecute();
     bool
     haveLanguage();
@@ -111,6 +115,8 @@ public:
     haveLoadFiles();
     bool
     haveSocketIoUri();
+    bool
+    haveNoIpc();
 
 private:
     bool
@@ -128,8 +134,10 @@ private:
     bool _userstartup;
     bool _usermodules;
     bool _quietmode;
+    bool _ipc;
     std::wstring _error;
     std::wstring _file;
+    std::wstring _fileIPC;
     std::wstring _command;
     std::wstring _options;
     std::wstring _lang;

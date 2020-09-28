@@ -23,13 +23,12 @@
 // License along with this program. If not, see <http://www.gnu.org/licenses/>.
 // LICENCE_BLOCK_END
 //=============================================================================
-#pragma once
+// <--ADV-CLI MODE-->
+// <--IPC REQUIRED-->
 //=============================================================================
-#include "Evaluator.hpp"
-#include "Types.hpp"
-//=============================================================================
-namespace Nelson {
-bool
-LoadFilesAssociated(Evaluator* eval, wstringVector filesToLoad);
-}
+clear('R');
+REF = 'simplified Chinese: 汉字; traditional Chinese: 漢字; pinyin: Hàn Zì'; 
+ipc(getpid, 'put', REF, 'R', 'base')
+q = 0;while(~isvar('R') && q < 10), sleep(1), q = q + 1; end
+assert_isequal(REF, acquirevar('base', 'R'));
 //=============================================================================

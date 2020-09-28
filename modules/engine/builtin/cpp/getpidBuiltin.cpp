@@ -23,36 +23,43 @@
 // License along with this program. If not, see <http://www.gnu.org/licenses/>.
 // LICENCE_BLOCK_END
 //=============================================================================
-#include "ExecuteCommand.hpp"
-#include "Evaluator.hpp"
-#include "GetNelsonMainEvaluatorDynamicFunction.hpp"
-#include "characters_encoding.hpp"
+#include "getpidBuiltin.hpp"
+#include "Error.hpp"
+#include "NelsonPIDs.hpp"
 //=============================================================================
-namespace Nelson {
+using namespace Nelson;
 //=============================================================================
-bool
-executeCommand(const std::wstring& commandToExecute, bool forceEvaluateString)
+ArrayOfVector
+Nelson::EngineGateway::getpidBuiltin(int nLhs, const ArrayOfVector& argIn)
 {
-    void* veval = GetNelsonMainEvaluatorDynamicFunction();
-    if (veval != nullptr) {
-        std::wstring _cmd = commandToExecute + L";";
-        auto* eval = static_cast<Evaluator*>(veval);
-        Interface* io = eval->getInterface();
-        if (io != nullptr) {
-            if (forceEvaluateString) {
-                eval->evaluateString(_cmd + L"\n", io->isAtPrompt());
-            } else {
-                if (io->isAtPrompt()) {
-                    eval->addCommandToQueue(_cmd, true);
-                } else {
-                    eval->evaluateString(_cmd + L"\n");
-                }
-            }
-            return true;
-        }
+    ArrayOfVector retval;
+    if (nLhs > 1) {
+        Error(ERROR_WRONG_NUMBERS_INPUT_ARGS);
     }
-    return false;
+    switch (argIn.size()) {
+    case 0: {
+        retval.push_back(ArrayOf::doubleConstructor((double)getCurrentPID()));
+    } break;
+    case 1: {
+        std::wstring param = argIn[0].getContentAsWideString();
+        if (param == L"available") {
+            std::vector<int> pids = getNelsonPIDs();
+            ArrayOf res;
+            Dimensions dims(1, pids.size());
+            double* pd = (double*)ArrayOf::allocateArrayOf(NLS_DOUBLE, pids.size());
+            res = ArrayOf(NLS_DOUBLE, dims, pd);
+            for (indexType k = 0; k < dims.getElementCount(); ++k) {
+                pd[k] = (double)pids[k];
+            }
+            retval.push_back(res);
+        } else {
+            Error(_("Wrong value for #1 argument: 'available' expected."));
+        }
+    } break;
+    default: {
+        Error(ERROR_WRONG_NUMBERS_INPUT_ARGS);
+    } break;
+    }
+    return retval;
 }
-//=============================================================================
-} // namespace Nelson
 //=============================================================================

@@ -116,6 +116,7 @@ ProgramOptions::ProgramOptions(wstringVector args, NELSON_ENGINE_MODE mode)
     _userstartup = false;
     _usermodules = false;
     _quietmode = false;
+    _ipc = false;
     _error.clear();
     _file.clear();
     _command.clear();
@@ -136,6 +137,7 @@ ProgramOptions::~ProgramOptions()
     _userstartup = false;
     _usermodules = false;
     _quietmode = false;
+    _ipc = false;
     _error.clear();
     _file.clear();
     _command.clear();
@@ -240,14 +242,19 @@ ProgramOptions::parse()
     // nelson --quiet others_arguments
     // nelson others_arguments --quiet lang others_arguments
     // nelson others_arguments --timeout 10
+    // nelson --noipc others_arguments (except noipc)
+
     bool bRes;
     Option helpOption(L"help", L"h", _W("display this help message"), false, false);
     Option versionOption(L"version", L"v", _W("display the version number"), false, false);
     Option nostartupOption(L"nostartup", L"", _W("no main startup file"), false, false);
     Option nouserstartupOption(L"nouserstartup", L"", _W("no user startup file"), false, false);
     Option nousermodulesOption(L"nousermodules", L"", _W("no user modules loaded"), false, false);
+    Option noIpcOption(L"noipc", L"", _W("no ipc features"), false, false);
     Option commandtoexecuteOption(L"execute", L"e", _W("command to execute"), false, true);
-    Option filetoexecuteOption(L"file", L"f", _W("file to execute"), false, true);
+    Option filetoexecuteOption(L"file", L"f", _W("file to execute in an new process"), false, true);
+    Option filetoexecuteIPCOption(
+        L"", L"F", _W("file to execute in an existing process"), false, true);
     Option languageOption(L"language", L"l", _W("language used in current session"), false, true);
     Option socketIoOption(L"socketio", L"", _W("socket.io uri address"), false, true);
     Option quietOption(
@@ -261,8 +268,10 @@ ProgramOptions::parse()
     _options = _options + nostartupOption.getFullDescription() + L"\n";
     _options = _options + nouserstartupOption.getFullDescription() + L"\n";
     _options = _options + nousermodulesOption.getFullDescription() + L"\n";
+    _options = _options + noIpcOption.getFullDescription() + L"\n";
     _options = _options + commandtoexecuteOption.getFullDescription() + L"\n";
     _options = _options + filetoexecuteOption.getFullDescription() + L"\n";
+    _options = _options + filetoexecuteIPCOption.getFullDescription() + L"\n";
     _options = _options + languageOption.getFullDescription() + L"\n";
     if (_mode == NELSON_ENGINE_MODE::BASIC_SIO_CLIENT) {
         _options = _options + socketIoOption.getFullDescription() + L"\n";
@@ -276,16 +285,28 @@ ProgramOptions::parse()
     bRes = bRes && parseOption(nostartupOption, _startup);
     bRes = bRes && parseOption(nouserstartupOption, _userstartup);
     bRes = bRes && parseOption(nousermodulesOption, _usermodules);
+    bRes = bRes && parseOption(noIpcOption, _ipc);
     bRes = bRes && parseOptionWithValues(openFilesOption, _filesToOpen);
     bRes = bRes && parseOptionWithValues(loadFilesOption, _filesToLoad);
     bool bFind = false;
     bRes = bRes && parseOptionWithValue(commandtoexecuteOption, bFind, _command);
     bRes = bRes && parseOptionWithValue(filetoexecuteOption, bFind, _file);
+    bRes = bRes && parseOptionWithValue(filetoexecuteIPCOption, bFind, _fileIPC);
     bRes = bRes && parseOptionWithValue(languageOption, bFind, _lang);
     if (_mode == NELSON_ENGINE_MODE::BASIC_SIO_CLIENT) {
         bRes = bRes && parseOptionWithValue(socketIoOption, bFind, _socketioUri);
         if (!bFind && !_ishelp) {
             _error = _W("socketio address required.");
+            return false;
+        }
+    }
+    if (_mode != NELSON_ENGINE_MODE::GUI) {
+        if (!_fileIPC.empty()) {
+            _error = _W("'-F' option, GUI mode required.");
+            return false;
+        }
+        if (!_filesToOpen.empty()) {
+            _error = _W("'open' in editor, GUI mode required.");
             return false;
         }
     }
@@ -339,6 +360,15 @@ ProgramOptions::haveFileToExecute()
 }
 //=============================================================================
 bool
+ProgramOptions::haveFileToExecuteIPC()
+{
+    if (_isvalid) {
+        return !_fileIPC.empty();
+    }
+    return false;
+}
+//=============================================================================
+bool
 ProgramOptions::haveCommandToExecute()
 {
     if (_isvalid) {
@@ -370,6 +400,15 @@ ProgramOptions::haveNoStartup()
 {
     if (_isvalid) {
         return _startup;
+    }
+    return false;
+}
+//=============================================================================
+bool
+ProgramOptions::haveNoIpc()
+{
+    if (_isvalid) {
+        return _ipc;
     }
     return false;
 }
@@ -444,6 +483,12 @@ std::wstring
 ProgramOptions::getFileToExecute()
 {
     return _file;
+}
+//=============================================================================
+std::wstring
+ProgramOptions::getFileToExecuteIPC()
+{
+    return _fileIPC;
 }
 //=============================================================================
 std::wstring

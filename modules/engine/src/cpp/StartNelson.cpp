@@ -51,8 +51,6 @@
 #include "ModulesHelpers.hpp"
 #include "NelsonNamedMutex.hpp"
 #include "Nelson_VERSION.h"
-#include "OpenFilesAssociated.hpp"
-#include "LoadFilesAssociated.hpp"
 #include "ProgramOptions.hpp"
 #include "RecursionStack.hpp"
 #include "SetNelSonEnvironmentVariables.hpp"
@@ -64,6 +62,12 @@
 #include "ErrorEmitter.h"
 #include "NelsonPrint.hpp"
 #include "MxCall.h"
+#include "NelsonPIDs.hpp"
+#include "FilesAssociation.hpp"
+#include "FilesAssociationIPC.hpp"
+#include "NelsonInterprocess.hpp"
+#include "RemoveIpcOldFiles.hpp"
+#include "NelsonConfiguration.hpp"
 //=============================================================================
 static void
 ErrorCommandLineMessage_startup_exclusive(NELSON_ENGINE_MODE _mode)
@@ -85,45 +89,65 @@ ErrorCommandLineMessage_startup_exclusive(NELSON_ENGINE_MODE _mode)
 static void
 ErrorCommandLineMessage_file_commmand(NELSON_ENGINE_MODE _mode)
 {
+    std::wstring msg = _W("Too many arguments -f and -e are exclusive.");
 #ifdef _MSC_BUILD
     if (_mode == GUI) {
-        MessageBox(nullptr, _W("too many arguments -f and -e are exclusive.").c_str(),
-            _W("Error").c_str(), MB_ICONERROR);
+        MessageBox(nullptr, msg.c_str(), _W("Error").c_str(), MB_ICONERROR);
     } else {
-        std::cerr << _("ERROR: too many arguments -f and -e are exclusive.") << std::endl;
+        std::cerr << wstring_to_utf8(msg) << std::endl;
     }
 #else
-    std::cerr << _("ERROR: too many arguments -f and -e are exclusive.") << std::endl;
+    std::cerr << wstring_to_utf8(msg) << std::endl;
 #endif
 }
 //=============================================================================
 static void
-ErrorPathDetection(NELSON_ENGINE_MODE _mode)
+ErrorCommandLineMessage_file_execute(NELSON_ENGINE_MODE _mode)
 {
+    std::wstring msg = _W("Too many arguments -f and -F are exclusive.");
 #ifdef _MSC_BUILD
     if (_mode == GUI) {
-        MessageBox(nullptr, _W("Nelson paths not initialized.").c_str(), _W("Error").c_str(),
-            MB_ICONERROR);
+        MessageBox(nullptr, msg.c_str(), _W("Error").c_str(), MB_ICONERROR);
     } else {
-        fwprintf(stderr, L"%ls", _W("Nelson paths not initialized.\n").c_str());
+        std::cerr << wstring_to_utf8(msg) << std::endl;
     }
 #else
-    fwprintf(stderr, L"%ls", _W("Nelson paths not initialized.\n").c_str());
+    std::cerr << wstring_to_utf8(msg) << std::endl;
+#endif
+}
+//=============================================================================
+
+static void
+ErrorPathDetection(NELSON_ENGINE_MODE _mode)
+{
+    std::wstring msg = _W("Nelson paths not initialized.");
+#ifdef _MSC_BUILD
+    if (_mode == GUI) {
+        MessageBox(nullptr, msg.c_str(), _W("Error").c_str(), MB_ICONERROR);
+    } else {
+        msg = msg + L"\n";
+        fwprintf(stderr, L"%ls", msg.c_str());
+    }
+#else
+    msg = msg + L"\n";
+    fwprintf(stderr, msg.c_str());
 #endif
 }
 //=============================================================================
 static void
 ErrorInterpreter(NELSON_ENGINE_MODE _mode)
 {
+    std::wstring msg = _W("Nelson interpreter not initialized.");
 #ifdef _MSC_BUILD
     if (_mode == GUI) {
-        MessageBox(nullptr, _W("Nelson interpreter not initialized.").c_str(), _W("Error").c_str(),
-            MB_ICONERROR);
+        MessageBox(nullptr, msg.c_str(), _W("Error").c_str(), MB_ICONERROR);
     } else {
-        fwprintf(stderr, L"%ls", _W("Nelson interpreter not initialized.\n").c_str());
+        msg = msg + L"\n";
+        fwprintf(stderr, L"%ls", msg.c_str());
     }
 #else
-    fwprintf(stderr, _W("Nelson interpreter not initialized.\n").c_str());
+    msg = msg + L"\n";
+    fwprintf(stderr, msg.c_str());
 #endif
 }
 
@@ -148,15 +172,16 @@ displayVersion(NELSON_ENGINE_MODE _mode)
 static void
 displayHelp(std::wstring description, NELSON_ENGINE_MODE _mode)
 {
+    std::wstring msg = L"Nelson options:";
 #ifdef _MSC_VER
     if (_mode == GUI) {
-        MessageBox(nullptr, description.c_str(), L"Nelson options:", MB_ICONINFORMATION);
+        MessageBox(nullptr, description.c_str(), msg.c_str(), MB_ICONINFORMATION);
     } else {
-        std::wcout << L"Nelson options:\n";
-        std::wcout << description;
+        std::wcout << msg.c_str() << L"\n";
+        std::wcout << description.c_str();
     }
 #else
-    std::wcout << L"Nelson options:\n";
+    std::wcout << msg.c_str() << L"\n";
     std::wcout << description.c_str();
 #endif
 }
@@ -164,15 +189,16 @@ displayHelp(std::wstring description, NELSON_ENGINE_MODE _mode)
 static void
 ErrorCommandLine(const std::wstring& str, NELSON_ENGINE_MODE _mode)
 {
+    std::wstring msg = L"Error:";
 #ifdef _MSC_VER
     if (_mode == GUI) {
-        MessageBox(nullptr, str.c_str(), L"Error:", MB_ICONINFORMATION);
+        MessageBox(nullptr, str.c_str(), msg.c_str(), MB_ICONINFORMATION);
     } else {
-        std::wcout << L"Error:\n";
+        std::wcout << msg.c_str() << L"\n";
         std::wcout << str;
     }
 #else
-    std::wcout << L"Error:\n";
+    std::wcout << msg.c_str() << L"\n";
     std::wcout << str.c_str();
 #endif
 }
@@ -219,8 +245,8 @@ NelsonMainStates(Evaluator* eval, bool haveNoStartup, bool haveNoUserStartup,
         Interface* io = eval->getInterface();
         io->errorMessage(e.getMessage());
     }
-    OpenFilesAssociated(eval, filesToOpen);
-    LoadFilesAssociated(eval, filesToLoad);
+    OpenFilesAssociated((NELSON_ENGINE_MODE)eval->getNelsonEngineMode(), filesToOpen);
+    LoadFilesAssociated((NELSON_ENGINE_MODE)eval->getNelsonEngineMode(), filesToLoad);
     while (eval->getState() != NLS_STATE_QUIT) {
         if (eval->getState() == NLS_STATE_ABORT) {
             eval->clearStacks();
@@ -251,6 +277,49 @@ static int
 StartNelsonInternal(wstringVector args, NELSON_ENGINE_MODE _mode)
 {
     int exitCode = -1;
+    ProgramOptions po(args, _mode);
+    if (!po.isValid()) {
+        ErrorCommandLine(po.getErrorMessage(), _mode);
+        return exitCode;
+    }
+    if (po.haveOptionsHelp()) {
+        displayHelp(po.getOptionsHelp(), _mode);
+        return 0;
+    }
+    if (po.haveVersion()) {
+        displayVersion(_mode);
+        return 0;
+    }
+    NelsonConfiguration::getInstance()->setIpcEnabled(!po.haveNoIpc());
+    if (_mode == NELSON_ENGINE_MODE::GUI && NelsonConfiguration::getInstance()->isIpcEnabled()) {
+        int existingPID = getLatestPidWithModeInSharedMemory(_mode);
+        if (existingPID != 0) {
+            if (po.haveFileToExecuteIPC()) {
+                std::wstring fileToExecuteIPC = po.getFileToExecuteIPC();
+                wstringVector fileToExecuteAsVector;
+                fileToExecuteAsVector.push_back(fileToExecuteIPC);
+                if (sendCommandToFileExtensionReceiver(existingPID, "run", fileToExecuteAsVector)) {
+                    return 0;
+                }
+            }
+            if (po.haveOpenFiles()) {
+                if (sendCommandToFileExtensionReceiver(existingPID, "open", po.getFilesToOpen())) {
+                    return 0;
+                }
+            }
+            if (po.haveLoadFiles()) {
+                if (sendCommandToFileExtensionReceiver(existingPID, "load", po.getFilesToLoad())) {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    int latestPid = getLatestPidInSharedMemory();
+    if (latestPid == 0) {
+        RemoveIpcOldFiles();
+    }
+
     if (!SetNelSonEnvironmentVariables()) {
         ErrorPathDetection(_mode);
         return exitCode;
@@ -288,34 +357,30 @@ StartNelsonInternal(wstringVector args, NELSON_ENGINE_MODE _mode)
     wstringVector filesToLoad;
     std::wstring lang;
     bool bQuietMode = false;
-    ProgramOptions po(args, _mode);
-    if (!po.isValid()) {
-        ErrorCommandLine(po.getErrorMessage(), _mode);
+    if (po.haveTimeout()) {
+        createTimeoutThread(po.getTimeout());
+    }
+    lang = po.getLanguage();
+    if (po.haveCommandToExecute() && po.haveFileToExecute()) {
+        ErrorCommandLineMessage_file_commmand(_mode);
         return exitCode;
     }
-    if (po.haveOptionsHelp()) {
-        displayHelp(po.getOptionsHelp(), _mode);
-        return 0;
-    }
-    if (po.haveVersion()) {
-        displayVersion(_mode);
-        return 0;
-    }
-    if (po.haveTimeout()) {
-        TimeoutThread(po.getTimeout());
-    }
-    filesToOpen = po.getFilesToOpen();
-    filesToLoad = po.getFilesToLoad();
-    commandToExecute = po.getCommandToExecute();
-    fileToExecute = po.getFileToExecute();
-    lang = po.getLanguage();
-    if (!commandToExecute.empty() && !fileToExecute.empty()) {
-        ErrorCommandLineMessage_file_commmand(_mode);
+    if (po.haveFileToExecute() && po.haveFileToExecuteIPC()) {
+        ErrorCommandLineMessage_file_execute(_mode);
         return exitCode;
     }
     if (po.haveNoStartup() && po.haveNoUserStartup()) {
         ErrorCommandLineMessage_startup_exclusive(_mode);
         return exitCode;
+    }
+    commandToExecute = po.getCommandToExecute();
+    filesToOpen = po.getFilesToOpen();
+    filesToLoad = po.getFilesToLoad();
+    if (po.haveFileToExecute()) {
+        fileToExecute = po.getFileToExecute();
+    }
+    if (po.haveFileToExecuteIPC()) {
+        fileToExecute = po.getFileToExecuteIPC();
     }
     std::wstring socketIoURI;
     if (_mode == BASIC_SIO_CLIENT) {
@@ -330,8 +395,17 @@ StartNelsonInternal(wstringVector args, NELSON_ENGINE_MODE _mode)
         boost::filesystem::path full_p = boost::filesystem::complete(p);
         fileToExecute = full_p.generic_wstring();
     }
+
     Evaluator* eval = createMainEvaluator(_mode, lang);
     if (eval != nullptr) {
+        int currentPID = getCurrentPID();
+        if (NelsonConfiguration::getInstance()->isIpcEnabled()) {
+            registerPidInSharedMemory(currentPID, _mode);
+            if (_mode == NELSON_ENGINE_MODE::GUI) {
+                createNelsonCommandFileExtensionReceiver(currentPID);
+            }
+            createNelsonInterprocessReceiver(currentPID);
+        }
         setWarningEvaluator(eval);
         setErrorEvaluator(eval);
         setPrintInterface(eval->getInterface());
@@ -363,6 +437,14 @@ StartNelsonInternal(wstringVector args, NELSON_ENGINE_MODE _mode)
             po.haveNoUserModules(), commandToExecute, fileToExecute, filesToOpen, filesToLoad);
         ::destroyMainEvaluator();
         clearWarningIdsList();
+        if (NelsonConfiguration::getInstance()->isIpcEnabled()) {
+            removeNelsonInterprocessReceiver(currentPID);
+            if (_mode == NELSON_ENGINE_MODE::GUI) {
+                removeNelsonCommandFileExtensionReceiver(currentPID);
+            }
+            unregisterPidInSharedMemory(currentPID);
+        }
+        destroyTimeoutThread();
     } else {
         ErrorInterpreter(_mode);
     }
@@ -372,9 +454,13 @@ StartNelsonInternal(wstringVector args, NELSON_ENGINE_MODE _mode)
 static int
 StartNelsonInternalWithMutex(const wstringVector& args, NELSON_ENGINE_MODE _mode)
 {
-    openNelsonMutex();
+    if (!haveNelsonMutex()) {
+        openNelsonMutex();
+    }
     int exitCode = StartNelsonInternal(args, _mode);
-    closeNelsonMutex();
+    if (haveNelsonMutex()) {
+        closeNelsonMutex();
+    }
     return exitCode;
 }
 //=============================================================================

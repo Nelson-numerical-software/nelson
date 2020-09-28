@@ -222,19 +222,11 @@ ModulesManager::deleteAllModules()
 bool
 ModulesManager::deleteModule(const std::wstring& modulename)
 {
-    bool found = false;
-    size_t pos = 0;
-    for (size_t i = 0; i < modulesMap.size(); i++) {
-        mapElement elem = modulesMap[i];
-        if (std::get<0>(elem) == modulename) {
-            pos = i;
-            found = true;
-            break;
+    for (auto it = modulesMap.begin(); it != modulesMap.end(); ++it) {
+        if (std::get<0>(*it) == modulename) {
+            modulesMap.erase(it);
+            return true;
         }
-    }
-    if (found) {
-        modulesMap.erase(modulesMap.begin() + pos);
-        return true;
     }
     return false;
 }
@@ -242,20 +234,11 @@ ModulesManager::deleteModule(const std::wstring& modulename)
 bool
 ModulesManager::findModule(const std::wstring& modulename, std::wstring& path)
 {
-    bool found = false;
-    size_t pos = 0;
-    for (size_t i = 0; i < modulesMap.size(); i++) {
-        mapElement elem = modulesMap[i];
-        if (std::get<0>(elem) == modulename) {
-            pos = i;
-            found = true;
-            break;
+    for (auto it = modulesMap.begin(); it != modulesMap.end(); ++it) {
+        if (std::get<0>(*it) == modulename) {
+            path = std::get<1>(*it);
+            return true;
         }
-    }
-    if (found) {
-        mapElement elem = modulesMap[pos];
-        path = std::get<1>(elem);
-        return true;
     }
     return false;
 }

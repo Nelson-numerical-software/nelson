@@ -1,3 +1,77 @@
+# 0.4.9 (2020-09-27)
+
+  * ipc builtin: Inter-process communication between Nelson's process
+
+  * getpid('running') renamed getpid('available').
+
+  * --noipc command line argument added. disable IPC features.
+
+  * dark theme detected and used on Macos X.
+
+  * test_run reworked (faster to start).
+
+  * test_run extended with '-stoponfail' option.
+
+  * jsonencode faster for string encoding.
+
+  * rework timeout thread.
+
+Bug Fixes:
+---------
+
+  * [#330](http://github.com/Nelson-numerical-software/nelson/issues/330): removes ALSA errors and warnings on linux.
+
+Compilation:
+------------
+
+  * [#322](http://github.com/Nelson-numerical-software/nelson/issues/322): fix build with gcc 4.8 (ubuntu 14.04).
+      
+      Nelson 0.4.9 will be last to support gcc 4.8
+
+  * libsndfile 1.0.30 on Windows.
+
+
+# 0.4.8 (2020-08-26)
+
+  * multiplatforms files association based on Inter-process communication.
+    open, load, execute files in latest created Nelson's process. 
+
+  * event loop and command queue updated. 
+
+  * fix play, playblocking, resume builtin.
+
+  * getpid() returns current process identificator.
+
+  * getpid('running') returns all nelson processes identificators currently running for current user.
+
+  * hostname() returns current host name of your computer.
+
+  * username() returns current user name used on your computer.
+
+  * isvector checks if input is an vector.
+ 
+ 
+Compilation:
+------------
+
+  * libffi 3.3 was not detected on Macos X.
+
+  * libicu4c 67.1 was not detected on Macos X.
+
+  * Qt 5.15 official package was not detected on Macos X.
+
+  * libsndfile 1.0.29 on Windows.
+
+  * libcurl 7.72.0 on Windows.
+
+  * libbost 1.74.0 on Windows.
+
+  * CMake 3.18.1 used on Windows.
+
+  * GitHub CI MacOS x Catalina.
+
+
+
 # 0.4.7 (2020-07-31)
 
   * [#311](http://github.com/Nelson-numerical-software/nelson/issues/311): betainc builtin: Incomplete beta function.

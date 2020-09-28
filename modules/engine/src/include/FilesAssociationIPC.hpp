@@ -23,40 +23,26 @@
 // License along with this program. If not, see <http://www.gnu.org/licenses/>.
 // LICENCE_BLOCK_END
 //=============================================================================
-#include "OpenFilesAssociated.hpp"
-#include "EvaluateCommand.hpp"
-#include "NelSon_engine_mode.h"
-#include <boost/filesystem.hpp>
+#pragma once
+//=============================================================================
+#include <string>
+#include <vector>
+#include "nlsEngine_exports.h"
 //=============================================================================
 namespace Nelson {
 //=============================================================================
-bool
-OpenFilesAssociated(Evaluator* eval, wstringVector filesToOpen)
-{
-    bool res = false;
-    if (eval->getNelsonEngineMode() == NELSON_ENGINE_MODE::ADVANCED_TERMINAL
-        || eval->getNelsonEngineMode() == NELSON_ENGINE_MODE::GUI) {
-        if (!filesToOpen.empty()) {
-            try {
-                for (size_t k = 0; k < filesToOpen.size(); k++) {
-                    boost::filesystem::path pathFileToOpen(filesToOpen[k]);
-                    bool bIsFile = boost::filesystem::exists(pathFileToOpen)
-                        && !boost::filesystem::is_directory(pathFileToOpen);
-                    if (bIsFile) {
-                        std::wstring editCommand = std::wstring(L"edit('" + filesToOpen[k] + L"')");
-                        EvaluateCommand(eval, editCommand, false);
-                        res = true;
-                    }
-                }
-            } catch (Exception& e) {
-                Interface* io = eval->getInterface();
-                io->errorMessage(e.getMessage());
-                res = false;
-            }
-        }
-    }
-    return res;
-}
+NLSENGINE_IMPEXP
+void
+createNelsonCommandFileExtensionReceiver(int pid);
 //=============================================================================
-} // namespace Nelson
+NLSENGINE_IMPEXP
+bool
+removeNelsonCommandFileExtensionReceiver(int pid);
+//=============================================================================
+NLSENGINE_IMPEXP
+bool
+sendCommandToFileExtensionReceiver(
+    int pidDestination, const std::string& commandType, const std::vector<std::wstring>& filenames);
+//=============================================================================
+}
 //=============================================================================

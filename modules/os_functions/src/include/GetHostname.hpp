@@ -23,18 +23,15 @@
 // License along with this program. If not, see <http://www.gnu.org/licenses/>.
 // LICENCE_BLOCK_END
 //=============================================================================
-assert_isequal(nargin('feof'), 1);
-assert_isequal(nargout('feof'), 1);
+#pragma once
 //=============================================================================
-filename = [modulepath('characters_encoding'), '/tests/shisei_UTF-8.txt'];
-fid = fopen(filename, 'rt', 'n', 'UTF-8');
-assert_isequal(feof(fid), 0);
-while ~feof(fid)
-  assert_isequal(feof(fid), 0);
-  l = fgetl(fid);
-end
-assert_isequal(feof(fid), 1);
-fclose(fid);
+#include <string>
+#include "nlsOs_functions_exports.h"
 //=============================================================================
-assert_checkerror('feof(1000)', _('Invalid file identifier.'));
+namespace Nelson {
+//=============================================================================
+NLSOS_FUNCTIONS_IMPEXP std::wstring
+GetHostname();
+//=============================================================================
+} // namespace Nelson
 //=============================================================================
