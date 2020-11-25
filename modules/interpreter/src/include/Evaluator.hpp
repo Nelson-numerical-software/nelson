@@ -133,9 +133,6 @@ class NLSINTERPRETER_IMPEXP Evaluator
 
     bool InCLI;
 
-    std::wstring
-    buildPrompt();
-
     bool bEchoMode = true;
 
     bool bQuietMode = false;
@@ -148,6 +145,8 @@ class NLSINTERPRETER_IMPEXP Evaluator
 
 public:
     std::vector<std::wstring> evaluatedFilenames;
+
+    bool isReadyToUse = false;
 
     void* mainGuiObject = nullptr;
 
@@ -162,6 +161,9 @@ public:
     setCLI(bool bCLI);
     bool
     getCLI();
+
+    std::wstring
+    buildPrompt();
 
     /**
      * Get the context we are running with.

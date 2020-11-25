@@ -27,8 +27,6 @@
 #include "argvBuiltin.hpp"
 #include "getnelsonmodeBuiltin.hpp"
 #include "isquietmodeBuiltin.hpp"
-#include "getpidBuiltin.hpp"
-#include "ipcBuiltin.hpp"
 //=============================================================================
 using namespace Nelson;
 //=============================================================================
@@ -39,9 +37,7 @@ static const nlsGateway gateway[]
             CPP_BUILTIN_WITH_EVALUATOR },
           { "argv", (void*)Nelson::EngineGateway::argvBuiltin, 1, 0, CPP_BUILTIN_WITH_EVALUATOR },
           { "isquietmode", (void*)Nelson::EngineGateway::isquietmodeBuiltin, 1, 0,
-              CPP_BUILTIN_WITH_EVALUATOR },
-          { "getpid", (void*)Nelson::EngineGateway::getpidBuiltin, 1, 0, CPP_BUILTIN },
-          { "ipc", (void*)Nelson::EngineGateway::ipcBuiltin, -1, 3, CPP_BUILTIN } };
+              CPP_BUILTIN_WITH_EVALUATOR } };
 //=============================================================================
 NLSGATEWAYFUNC(gateway)
 //=============================================================================

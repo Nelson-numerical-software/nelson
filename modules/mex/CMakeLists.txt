@@ -37,6 +37,9 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../characters_encoding/src/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../i18n/src/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../interpreter/src/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../ipc/src/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../engine/src/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../os_functions/src/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../sparse/src/include)
 # ==============================================================================
 file(GLOB FILE_ARCHIVER_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src/cpp/*.cpp")
@@ -53,6 +56,8 @@ target_link_libraries(
   nlsTypes
   nlsInterpreter
   nlsSparse
+  nlsIpc
+  nlsOs_functions
   ${BOOST_LIBRARIES})
 # ==============================================================================
 set_target_properties(
@@ -87,8 +92,13 @@ install(
   FILES_MATCHING
   PATTERN "*.nls")
 install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/modules/${module_name}/tests
+  DIRECTORY ${CMAKE_SOURCE_DIR}/modules/${module_name}/examples
   DESTINATION ${ROOT_OUTPUT}/modules/${module_name}
   FILES_MATCHING
-  PATTERN "*.zip")
+  PATTERN "*.nls")
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/modules/${module_name}/examples
+  DESTINATION ${ROOT_OUTPUT}/modules/${module_name}
+  FILES_MATCHING
+  PATTERN "*.c")
 # ==============================================================================
