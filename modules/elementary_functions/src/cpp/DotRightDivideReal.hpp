@@ -27,6 +27,7 @@
 //=============================================================================
 #include "lapack_eigen.hpp"
 #include <Eigen/Dense>
+#include "nlsConfig.h"
 #include "ArrayOf.hpp"
 //=============================================================================
 namespace Nelson {
@@ -72,14 +73,16 @@ matrix_matrix_real_dotRightDivide(Class classDestination, const ArrayOf& A, cons
     ArrayOf res;
     Dimensions dimsC = A.getDimensions();
     indexType Clen = dimsC.getElementCount();
-    void* Cp = ArrayOf::allocateArrayOf(classDestination, Clen);
+    T* Cp = (T*)ArrayOf::allocateArrayOf(classDestination, Clen);
     res = ArrayOf(classDestination, dimsC, Cp, false);
-    Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> matC((T*)Cp, 1, Clen);
-    Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> matA(
-        (T*)A.getDataPointer(), 1, Clen);
-    Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> matB(
-        (T*)B.getDataPointer(), 1, Clen);
-    matC = matA.cwiseQuotient(matB);
+    T* ptrA = (T*)A.getDataPointer();
+    T* ptrB = (T*)B.getDataPointer();
+#if defined(_NLS_WITH_OPENMP)
+#pragma omp parallel for
+#endif
+    for (ompIndexType k = 0; k < (ompIndexType)Clen; k++) {
+        Cp[k] = ptrA[k] / ptrB[k];
+    }
     return res;
 }
 //=============================================================================
@@ -263,7 +266,7 @@ real_dotRightDivide(Class classDestination, const ArrayOf& A, const ArrayOf& B)
             if (A.isVector() || B.isVector()) {
                 if ((A.isRowVector() && B.isRowVector())
                     || (A.isColumnVector() && B.isColumnVector())) {
-                    Error(_W("Size mismatch on arguments to arithmetic operator ") + L"./");
+                    Error(_("Size mismatch on arguments to arithmetic operator") + " " + "./");
                 } else if (A.isRowVector() && B.isColumnVector()) {
                     res = row_column_real_dotRightDivide<T>(classDestination, A, B);
                 } else if (A.isColumnVector() && B.isRowVector()) {
@@ -271,32 +274,36 @@ real_dotRightDivide(Class classDestination, const ArrayOf& A, const ArrayOf& B)
                 } else if (dimsA.getRows() == dimsB.getRows()) {
                     if (A.isVector()) {
                         if (!B.is2D()) {
-                            Error(_W("Size mismatch on arguments to arithmetic operator ") + L"./");
+                            Error(_("Size mismatch on arguments to arithmetic operator") + " "
+                                + "./");
                         }
                         res = row_matrix_real_dotRightDivide<T>(classDestination, A, B);
                     } else {
                         if (!A.is2D()) {
-                            Error(_W("Size mismatch on arguments to arithmetic operator ") + L"./");
+                            Error(_("Size mismatch on arguments to arithmetic operator") + " "
+                                + "./");
                         }
                         res = matrix_row_real_dotRightDivide<T>(classDestination, A, B);
                     }
                 } else if (dimsA.getColumns() == dimsB.getColumns()) {
                     if (A.isVector()) {
                         if (!B.is2D()) {
-                            Error(_W("Size mismatch on arguments to arithmetic operator ") + L"./");
+                            Error(_("Size mismatch on arguments to arithmetic operator") + " "
+                                + "./");
                         }
                         res = column_matrix_real_dotRightDivide<T>(classDestination, A, B);
                     } else {
                         if (!A.is2D()) {
-                            Error(_W("Size mismatch on arguments to arithmetic operator ") + L"./");
+                            Error(_("Size mismatch on arguments to arithmetic operator") + " "
+                                + "./");
                         }
                         res = matrix_column_real_dotRightDivide<T>(classDestination, A, B);
                     }
                 } else {
-                    Error(_W("Size mismatch on arguments to arithmetic operator ") + L"./");
+                    Error(_("Size mismatch on arguments to arithmetic operator") + " " + "./");
                 }
             } else {
-                Error(_W("Size mismatch on arguments to arithmetic operator ") + L"./");
+                Error(_("Size mismatch on arguments to arithmetic operator") + " " + "./");
             }
         }
     }

@@ -27,12 +27,16 @@
 #include "expmBuiltin.hpp"
 #include "invBuiltin.hpp"
 #include "issymmetricBuiltin.hpp"
+#include "ishermitianBuiltin.hpp"
 #include "logmBuiltin.hpp"
 #include "rcondBuiltin.hpp"
 #include "schurBuiltin.hpp"
 #include "sqrtmBuiltin.hpp"
 #include "svdBuiltin.hpp"
 #include "traceBuiltin.hpp"
+#include "detBuiltin.hpp"
+#include "eigBuiltin.hpp"
+#include "cholBuiltin.hpp"
 //=============================================================================
 using namespace Nelson;
 //=============================================================================
@@ -53,6 +57,11 @@ static const nlsGateway gateway[] = {
         CPP_BUILTIN_WITH_EVALUATOR },
     { "issymmetric", (void*)Nelson::LinearAlgebraGateway::issymmetricBuiltin, 1, 2,
         CPP_BUILTIN_WITH_EVALUATOR },
+    { "ishermitian", (void*)Nelson::LinearAlgebraGateway::ishermitianBuiltin, 1, 2,
+        CPP_BUILTIN_WITH_EVALUATOR },
+    { "det", (void*)Nelson::LinearAlgebraGateway::detBuiltin, 1, 1, CPP_BUILTIN_WITH_EVALUATOR },
+    { "eig", (void*)Nelson::LinearAlgebraGateway::eigBuiltin, 2, 2, CPP_BUILTIN_WITH_EVALUATOR },
+    { "chol", (void*)Nelson::LinearAlgebraGateway::cholBuiltin, 1, 1, CPP_BUILTIN_WITH_EVALUATOR },
 };
 //=============================================================================
 NLSGATEWAYFUNC(gateway)

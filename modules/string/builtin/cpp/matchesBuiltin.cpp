@@ -49,7 +49,7 @@ Nelson::StringGateway::matchesBuiltin(Evaluator* eval, int nLhs, const ArrayOfVe
             Error(_W("Wrong value for #3: 'IgnoreCase' expected."));
         }
         ArrayOf param4 = argIn[3];
-        ignoreCase = param4.getContentAsLogicalScalar();
+        ignoreCase = (param4.getContentAsLogicalScalar() != 0u);
     }
 
     ArrayOf A = argIn[0];

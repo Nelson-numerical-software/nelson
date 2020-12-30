@@ -49,13 +49,15 @@ Nelson::FilesFoldersGateway::fullfileBuiltin(int nLhs, const ArrayOfVector& argI
         if (inputElement.isStringArray()) {
             containsStringInput = true;
             containsCellOrStringInput = true;
-            theInput = ConvertStringsToChars(theInput);
-        }
-        if (inputElement.isCell() && inputElement.isScalar()) {
-            ArrayOf* cells = (ArrayOf*)inputElement.getDataPointer();
-            theInput = cells[0];
-        }
-        if (!theInput.isCharacterArray() && !theInput.isCell()) {
+            theInput = ConvertStringsToChars(theInput, false);
+        } else if (inputElement.isCell()) {
+            if (inputElement.isScalar()) {
+                ArrayOf* cells = (ArrayOf*)inputElement.getDataPointer();
+                theInput = cells[0];
+            }
+        } else if (inputElement.isEmpty()) {
+            theInput = ArrayOf::characterArrayConstructor(L"");
+        } else if (!theInput.isCharacterArray() && !theInput.isCell()) {
             Error(_W("All inputs must be strings, character vectors, or cell arrays of character "
                      "vectors."));
         }
@@ -70,27 +72,27 @@ Nelson::FilesFoldersGateway::fullfileBuiltin(int nLhs, const ArrayOfVector& argI
     } else {
         Dimensions dimsOutput;
         bool haveDimsOutput = false;
-        for (indexType k = 0; k < theInputs.size(); ++k) {
-            if (k == 0) {
-                if (!theInputs[k].isCharacterArray() && !theInputs[k].isScalar()) {
-                    dimsOutput = theInputs[k].getDimensions();
+        for (auto theInput : theInputs) {
+            if (!haveDimsOutput) {
+                if (!theInput.isCharacterArray()) {
+                    dimsOutput = theInput.getDimensions();
                     haveDimsOutput = true;
                 }
             } else {
-                if (!haveDimsOutput) {
-                    if (!theInputs[k].isCharacterArray() && !theInputs[k].isScalar()) {
-                        dimsOutput = theInputs[k].getDimensions();
-                        haveDimsOutput = true;
-                    }
-                } else {
-                    if (!theInputs[k].isCharacterArray() && !theInputs[k].isScalar()) {
-                        Dimensions dims = theInputs[k].getDimensions();
-                        if (!dims.equals(dimsOutput)) {
-                            Error(_W("All string and cell array inputs must be the same size or "
-                                     "scalars."));
-                        }
+                if (!theInput.isCharacterArray() && !theInput.isScalar()) {
+                    Dimensions dims = theInput.getDimensions();
+                    if (!dims.equals(dimsOutput)) {
+                        Error(_W(
+                            "All string and cell array inputs must be the same size or scalars."));
                     }
                 }
+            }
+        }
+        if (!haveDimsOutput) {
+            if (!theInputs[0].isCharacterArray()) {
+                dimsOutput = theInputs[0].getDimensions();
+            } else {
+                dimsOutput = Dimensions(1, 1);
             }
         }
         Class outputClass = containsStringInput ? NLS_STRING_ARRAY : NLS_CELL_ARRAY;
@@ -127,20 +129,6 @@ Nelson::FilesFoldersGateway::fullfileBuiltin(int nLhs, const ArrayOfVector& argI
                     }
                 }
                 vectorOfStringVector.push_back(vstr);
-            } else if (v.isStringArray()) {
-                auto* cells = (ArrayOf*)v.getDataPointer();
-                indexType nbCells = v.getDimensions().getElementCount();
-                wstringVector vstr;
-                vstr.reserve(nbCells);
-                for (indexType q = 0; q < nbCells; ++q) {
-                    ArrayOf c = cells[q];
-                    if (c.isCharacterArray()) {
-                        vstr.push_back(c.getContentAsWideString());
-                    } else {
-                        vstr.push_back(L"");
-                    }
-                    vectorOfStringVector.push_back(vstr);
-                }
             } else {
                 Error(_W("All inputs must be strings, character vectors, or cell arrays of "
                          "character vectors."));

@@ -42,7 +42,7 @@ EqHandle(ArrayOf A, ArrayOf B)
     Dimensions dimsA = A.getDimensions();
     Dimensions dimsB = B.getDimensions();
     if (!(SameSizeCheck(dimsA, dimsB) || A.isScalar() || B.isScalar())) {
-        Error(std::string(_("Size mismatch on arguments to arithmetic operator ")) + "eq");
+        Error(std::string(_("Size mismatch on arguments to arithmetic operator")) + " " + "eq");
     }
     int Astride = 0;
     int Bstride = 0;

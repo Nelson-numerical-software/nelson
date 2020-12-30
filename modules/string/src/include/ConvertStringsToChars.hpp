@@ -34,7 +34,7 @@ NLSSTRING_IMPEXP ArrayOfVector
 ConvertStringsToChars(const ArrayOfVector& A);
 //=============================================================================
 NLSSTRING_IMPEXP ArrayOf
-ConvertStringsToChars(const ArrayOf& A);
+ConvertStringsToChars(const ArrayOf& A, bool missingAsNaN);
 //=============================================================================
 }
 //=============================================================================

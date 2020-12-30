@@ -29,9 +29,18 @@
 #include "nlsLinear_algebra_exports.h"
 //=============================================================================
 namespace Nelson {
+//=============================================================================
 NLSLINEAR_ALGEBRA_IMPEXP bool
-IsSymmetric(ArrayOf A, bool skew);
+IsSymmetric(const ArrayOf& A, bool skew, bool& needToOverload);
+//=============================================================================
 NLSLINEAR_ALGEBRA_IMPEXP bool
-IsSymmetric(ArrayOf A, double tol);
+IsSymmetric(const ArrayOf& A, double tol, bool& needToOverload);
+//=============================================================================
+NLSLINEAR_ALGEBRA_IMPEXP bool
+IsSymmetric(const ArrayOf& A, bool skew, const std::string& functionName);
+//=============================================================================
+NLSLINEAR_ALGEBRA_IMPEXP bool
+IsSymmetric(const ArrayOf& A, double tol, const std::string& functionName);
+//=============================================================================
 } // namespace Nelson
 //=============================================================================

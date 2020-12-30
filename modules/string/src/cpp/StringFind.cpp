@@ -23,8 +23,9 @@
 // License along with this program. If not, see <http://www.gnu.org/licenses/>.
 // LICENCE_BLOCK_END
 //=============================================================================
-#include "StringFind.hpp"
 #include <boost/container/vector.hpp>
+#include "nlsConfig.h"
+#include "StringFind.hpp"
 //=============================================================================
 namespace Nelson {
 //=============================================================================
@@ -53,7 +54,10 @@ StringFind(const std::wstring& A, const std::wstring& B)
         double* Cp = static_cast<double*>(
             ArrayOf::allocateArrayOf(NLS_DOUBLE, Clen, stringVector(), false));
         Dimensions dimC(1, Clen);
-        for (size_t k = 0; k < Clen; k++) {
+#if defined(_NLS_WITH_OPENMP)
+#pragma omp parallel for
+#endif
+        for (ompIndexType k = 0; k < (ompIndexType)Clen; k++) {
             Cp[k] = vectorRes[k];
         }
         res = ArrayOf(NLS_DOUBLE, dimC, Cp);
