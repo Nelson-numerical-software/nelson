@@ -34,12 +34,14 @@ tests_*.json
 /bin/*/LICENSE_1_0.txt
 /bin/*/license_sdk.rtf
 /bin/*/mkl_license.txt
+/bin/*/libnlsblaslapack.dll.manifest
 /bin/*/nelson-cli.exe
 /bin/*/nelson_f2c
 /modules/main/help/*/html/CHANGELOG.html
 /modules/main/help/*/html/CHANGELOG-0.1.x.html
 /modules/main/help/*/html/CHANGELOG-0.2.x.html
 /modules/main/help/*/html/CHANGELOG-0.3.x.html
+/modules/main/help/*/html/CHANGELOG-0.4.x.html
 /modules/main/help/*/html/license.html
 /modules/main/help/*/html/GPL2.html
 /modules/main/help/*/html/LGPL21.html

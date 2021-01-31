@@ -30,6 +30,12 @@
 //=============================================================================
 #include <complex>
 //=============================================================================
+#pragma warning(disable : 4190)
+#ifndef lapack_complex_float
 #define lapack_complex_float std::complex<float>
+#endif
+//=============================================================================
+#ifndef lapack_complex_double
 #define lapack_complex_double std::complex<double>
+#endif
 //=============================================================================
