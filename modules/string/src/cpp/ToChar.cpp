@@ -36,9 +36,9 @@ ArrayOfDoubleToChar(const ArrayOf& A)
 {
     Dimensions dimsA = A.getDimensions();
     std::wstring res;
-    res.reserve(A.getLength());
+    res.reserve(A.getElementCount());
     auto* pDouble = (double*)A.getDataPointer();
-    for (indexType k = 0; k < A.getLength(); k++) {
+    for (indexType k = 0; k < A.getElementCount(); k++) {
         double v = pDouble[k];
         if (IsFinite(v)) {
             if (v < 0) {
@@ -139,7 +139,7 @@ ToChar(const ArrayOf& A, bool& needToOverload)
     case NLS_CELL_ARRAY: {
         ArrayOfVector V;
         auto* arg = (ArrayOf*)(A.getDataPointer());
-        indexType elementCount = A.getDimensions().getElementCount();
+        indexType elementCount = A.getElementCount();
         for (indexType k = 0; k < elementCount; k++) {
             ArrayOf val = ToChar(arg[k], needToOverload);
             if (needToOverload) {
@@ -206,8 +206,8 @@ ToChar(const wstringVector& V, boost::container::vector<Dimensions> dimsVector, 
             B.reshape(dimsVector[i]), resAsArrayOf = VertCat(resAsArrayOf, B, true, bSuccess);
         }
         res = resAsArrayOf.getContentAsArrayOfCharacters();
-        dims[0] = resAsArrayOf.getDimensions().getRows();
-        dims[1] = resAsArrayOf.getDimensions().getColumns();
+        dims[0] = resAsArrayOf.getRows();
+        dims[1] = resAsArrayOf.getColumns();
     }
     return res;
 }

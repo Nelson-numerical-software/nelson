@@ -25,7 +25,6 @@
 //=============================================================================
 #include "ToSingle.hpp"
 #include "nlsConfig.h"
-#include <Eigen/Dense>
 //=============================================================================
 namespace Nelson {
 //=============================================================================
@@ -34,10 +33,10 @@ ArrayOf
 ToSingle(const ArrayOf& A)
 {
     single* pSingle
-        = (single*)ArrayOf::allocateArrayOf(NLS_SINGLE, A.getLength(), stringVector(), false);
+        = (single*)ArrayOf::allocateArrayOf(NLS_SINGLE, A.getElementCount(), stringVector(), false);
     ArrayOf r = ArrayOf(NLS_SINGLE, A.getDimensions(), pSingle, A.isSparse());
     T* ptrA = (T*)A.getDataPointer();
-    ompIndexType N = (ompIndexType)A.getLength();
+    ompIndexType N = (ompIndexType)A.getElementCount();
 #if defined(_NLS_WITH_OPENMP)
 #pragma omp parallel for
 #endif
@@ -90,7 +89,7 @@ ToSingle(const ArrayOf& A, bool& needToOverload)
         return r;
     } break;
     case NLS_DCOMPLEX: {
-        ompIndexType elementCount = A.getDimensions().getElementCount();
+        ompIndexType elementCount = A.getElementCount();
         single* pSingle = static_cast<single*>(
             ArrayOf::allocateArrayOf(NLS_SCOMPLEX, elementCount, stringVector(), false));
         ArrayOf r = ArrayOf(NLS_SCOMPLEX, A.getDimensions(), pSingle, A.isSparse());

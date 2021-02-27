@@ -143,7 +143,7 @@ MacroFunctionDef::printMe(Interface* io)
 }
 //=============================================================================
 ArrayOfVector
-MacroFunctionDef::evaluateFunction(Evaluator* eval, ArrayOfVector& inputs, int nargout)
+MacroFunctionDef::evaluateFunction(Evaluator* eval, const ArrayOfVector& inputs, int nargout)
 {
     ArrayOfVector outputs;
     ArrayOf a;
@@ -255,7 +255,7 @@ MacroFunctionDef::evaluateFunction(Evaluator* eval, ArrayOfVector& inputs, int n
                              "cell-array."));
                 }
             }
-            indexType varlen = varargout.getLength();
+            indexType varlen = varargout.getElementCount();
             int explicitCount = static_cast<int>(returnVals.size()) - 1;
             bool noArgs = (explicitCount == 0 && varlen == 0);
             if (!noArgs && !haveVarargout) {
@@ -267,7 +267,7 @@ MacroFunctionDef::evaluateFunction(Evaluator* eval, ArrayOfVector& inputs, int n
                 const ArrayOf* dp = (static_cast<const ArrayOf*>(varargout.getDataPointer()));
                 // Get the length
                 if (static_cast<indexType>(toFill)
-                    > static_cast<indexType>(varargout.getDimensions().getElementCount())) {
+                    > static_cast<indexType>(varargout.getElementCount())) {
                     Error(_W("Not enough outputs in varargout to satisfy call."));
                 }
                 outputs[0] = dp[0];
@@ -299,15 +299,6 @@ MacroFunctionDef::evaluateFunction(Evaluator* eval, ArrayOfVector& inputs, int n
                     }
                 }
             }
-        }
-        // Check for arguments that were passed by reference, and
-        // update their values.
-        for (size_t i = 0; i < minCount; i++) {
-            std::string arg(arguments[i]);
-            if (arg[0] == '&') {
-                arg.erase(0, 1);
-            }
-            context->lookupVariableLocally(arg, inputs[i]);
         }
         context->popScope();
         eval->popDebug();

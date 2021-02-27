@@ -202,14 +202,29 @@ public:
      * Get the reference count to our data object - useful for
      * debug purposes.
      */
-    int
+    indexType
     getReferenceCount() const;
+    /**
+     * Get rows (equivalent to getDimensions().getRows()
+     */
+    indexType
+    getRows() const;
+    /**
+     * Get columns (equivalent to getDimensions().getColumns()
+     */
+    indexType
+    getColumns() const;
+    /**
+     * returns the number of dimensions in the array A.
+     */
+    indexType
+    nDims() const;
     /**
      * Get the length of the array as a vector.  This is equivalent
      * to computing length(this(:)).
      */
     indexType
-    getLength() const;
+    getElementCount() const;
     /**
      * Get a copy of our dimensions vector.
      */
@@ -761,6 +776,8 @@ public:
     void
     setValueAtIndex(uint64 index, ArrayOf scalarValue);
 
+    void
+    setValue(const ArrayOf& value);
     /**
      * Get a subset of an ArrayOf.  This is for vector-indexing, meaning that
      * the argument is assumed to refer to the elements in their order as a

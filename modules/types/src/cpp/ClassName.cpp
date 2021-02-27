@@ -32,7 +32,7 @@
 namespace Nelson {
 //=============================================================================
 std::string
-ClassName(ArrayOf In)
+ClassName(const ArrayOf& In)
 {
     std::string classString = wstring_to_utf8(ClassToString(In.getDataClass()));
     if (In.getDataClass() == NLS_GO_HANDLE) {
@@ -40,10 +40,9 @@ ClassName(ArrayOf In)
     } else if (In.getDataClass() == NLS_HANDLE) {
         classString = NLS_HANDLE_STR;
         /* handle can be 'handle' or another type but not mixed */
-        Dimensions dimsIn = In.getDimensions();
         auto* qp = (nelson_handle*)In.getDataPointer();
         if (qp) {
-            indexType elementCount = dimsIn.getElementCount();
+            indexType elementCount = In.getElementCount();
             for (indexType k = 0; k < elementCount; k++) {
                 nelson_handle hl = qp[k];
                 HandleGenericObject* hlObj = HandleManager::getInstance()->getPointer(hl);
@@ -75,13 +74,13 @@ ClassName(const ArrayOfVector& In)
 }
 //=============================================================================
 void
-ClassName(ArrayOf In, std::wstring& returnedClassName)
+ClassName(const ArrayOf& In, std::wstring& returnedClassName)
 {
     returnedClassName = utf8_to_wstring(ClassName(In));
 }
 //=============================================================================
 void
-ClassName(ArrayOf In, std::string& returnedClassName)
+ClassName(const ArrayOf& In, std::string& returnedClassName)
 {
     returnedClassName = ClassName(In);
 }

@@ -56,9 +56,9 @@ Not(const ArrayOf& A, bool& needToOverload)
         needToOverload = true;
         return ArrayOf();
     }
-    logical* Cp = static_cast<logical*>(ArrayOf::allocateArrayOf(
-        NLS_LOGICAL, A.getDimensions().getElementCount(), stringVector(), false));
-    boolean_not(A.getLength(), Cp, static_cast<const logical*>(AA.getDataPointer()));
+    logical* Cp = static_cast<logical*>(
+        ArrayOf::allocateArrayOf(NLS_LOGICAL, A.getElementCount(), stringVector(), false));
+    boolean_not(A.getElementCount(), Cp, static_cast<const logical*>(AA.getDataPointer()));
     C = ArrayOf(NLS_LOGICAL, A.getDimensions(), Cp);
     return C;
 }

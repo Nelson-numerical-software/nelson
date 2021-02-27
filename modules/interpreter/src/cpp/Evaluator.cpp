@@ -116,7 +116,7 @@
 #define strdup _strdup
 #endif
 namespace Nelson {
-
+//=============================================================================
 /**
  * Stores the current array for which to apply the "end" expression to.
  */
@@ -131,49 +131,64 @@ public:
     ;
 };
 std::vector<endData> endStack;
-
+//=============================================================================
 void
 sigInterrupt(int arg)
 {
     NelsonConfiguration::getInstance()->setInterruptPending(true);
 }
-
+//=============================================================================
+void
+Evaluator::pushStackEntry(const std::string& name, const std::string& detail, int id)
+{
+    cstack.push_back(StackEntry(name, detail, id));
+}
+//=============================================================================
 void
 Evaluator::pushID(int a)
 {
-    if (!cstack.empty()) {
-        if (cstack.size() > cstack.capacity() - 100) {
-            cstack.reserve(cstack.capacity() * 2);
-        }
-        cstack.push_back(StackEntry(cstack.back().cname, cstack.back().detail, a));
+    if (cstack.size() == 0) {
+        pushStackEntry("base", "base", a);
     } else {
-        cstack.push_back(StackEntry("base", "base", a));
+        pushStackEntry(cstack.back().cname, cstack.back().detail, a);
     }
 }
-
+//=============================================================================
 void
 Evaluator::popID()
 {
-    if (!cstack.empty()) {
+    if (cstack.size()) {
         cstack.pop_back();
-    } else {
-        io->outputMessage("IDERROR\n");
+    };
+}
+//=============================================================================
+void
+Evaluator::pushDebug(const std::string& fname, const std::string& detail)
+{
+    pushStackEntry(fname, detail, 0);
+}
+//======================================================================
+void
+Evaluator::popDebug()
+{
+    if (cstack.size()) {
+        cstack.pop_back();
     }
 }
-
-void
-Evaluator::resetState()
-{
-    state = NLS_STATE_OK;
-}
-
+//======================================================================
 void
 Evaluator::clearStacks()
 {
     cstack.clear();
     cstack.reserve(64);
 }
-
+//=============================================================================
+void
+Evaluator::resetState()
+{
+    state = NLS_STATE_OK;
+}
+//=============================================================================
 State
 Evaluator::setState(State newState)
 {
@@ -181,25 +196,25 @@ Evaluator::setState(State newState)
     state = newState;
     return previousState;
 }
-
+//=============================================================================
 State
 Evaluator::getState()
 {
     return state;
 }
-
+//=============================================================================
 int
 Evaluator::getExitCode()
 {
     return exitCode;
 }
-
+//=============================================================================
 void
 Evaluator::setExitCode(int _exitCode)
 {
     exitCode = _exitCode;
 }
-
+//=============================================================================
 ArrayOfVector
 Evaluator::rowDefinition(ASTPtr t)
 {
@@ -211,7 +226,7 @@ Evaluator::rowDefinition(ASTPtr t)
     popID();
     return retval;
 }
-
+//=============================================================================
 //!
 //@Module MATRIX Matrix Definitions
 //@@Section VARIABLES
@@ -294,7 +309,7 @@ Evaluator::matrixDefinition(ASTPtr t)
     popID();
     return res;
 }
-
+//=============================================================================
 //!
 //@Module CELL Cell ArrayOf Definitions
 //@@Section VARIABLES
@@ -353,14 +368,14 @@ Evaluator::cellDefinition(ASTPtr t)
     popID();
     return retval;
 }
-
+//=============================================================================
 bool
 Evaluator::needToOverloadOperator(const ArrayOf& a)
 {
     return ((a.getDataClass() == NLS_STRUCT_ARRAY) || (a.getDataClass() == NLS_CELL_ARRAY)
         || (a.getDataClass() == NLS_STRING_ARRAY) || a.isSparse() || a.isHandle());
 }
-
+//=============================================================================
 ArrayOf
 Evaluator::EndReference(ArrayOf v, indexType index, size_t count)
 {
@@ -373,13 +388,13 @@ Evaluator::EndReference(ArrayOf v, indexType index, size_t count)
     }
     return res;
 }
-
+//=============================================================================
 static bool
 approximatelyEqual(double a, double b, double epsilon)
 {
     return fabs(a - b) <= ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
-
+//=============================================================================
 ArrayOf
 Evaluator::expression(ASTPtr t)
 {
@@ -715,7 +730,7 @@ Evaluator::expression(ASTPtr t)
     popID();
     return retval;
 }
-
+//=============================================================================
 /**
  * An expressionList allows for expansion of cell-arrays
  * and structure arrays.  Works by first screening rhs-expressions
@@ -764,7 +779,7 @@ Evaluator::expressionList(ASTPtr t)
     popID();
     return m;
 }
-
+//=============================================================================
 ArrayOfVector
 Evaluator::expressionList(ASTPtr t, ArrayOf subRoot)
 {
@@ -839,7 +854,7 @@ Evaluator::subsindex(const ArrayOfVector& m)
     for (size_t k = 0; k < m.size(); k++) {
         ArrayOf t = OverloadUnaryOperator(this, m[k], "subsindex");
         t.promoteType(NLS_UINT32);
-        size_t len = t.getLength();
+        size_t len = t.getElementCount();
         uint32* dp = (uint32*)t.getReadWriteDataPointer();
         for (size_t j = 0; j < len; j++) {
             dp[j]++;
@@ -848,7 +863,7 @@ Evaluator::subsindex(const ArrayOfVector& m)
     }
     return n;
 }
-
+//=============================================================================
 bool
 Evaluator::conditionedStatement(ASTPtr t)
 {
@@ -868,7 +883,7 @@ Evaluator::conditionedStatement(ASTPtr t)
     popID();
     return conditionState;
 }
-
+//=============================================================================
 /**
  * This somewhat strange test is used by the switch statement.
  * If x is a scalar, and we are a scalar, this is an equality
@@ -896,7 +911,7 @@ Evaluator::testCaseStatement(ASTPtr t, ArrayOf s)
     popID();
     return caseMatched;
 }
-
+//=============================================================================
 //!
 //@Module TRY-CATCH Try and Catch Statement
 //@@Section FLOW
@@ -954,7 +969,6 @@ Evaluator::tryStatement(ASTPtr t)
         while (cstack.size() > stackdepth) {
             cstack.pop_back();
         }
-        //      cname = cstack.back().cname;
         t = t->right;
         if (t != nullptr) {
             autostop = autostop_save;
@@ -963,19 +977,19 @@ Evaluator::tryStatement(ASTPtr t)
     }
     autostop = autostop_save;
 }
-
+//=============================================================================
 bool
 Evaluator::AutoStop()
 {
     return autostop;
 }
-
+//=============================================================================
 void
 Evaluator::AutoStop(bool a)
 {
     autostop = a;
 }
-
+//=============================================================================
 //!
 //@Module SWITCH Switch statement
 //@@Section FLOW
@@ -1057,7 +1071,7 @@ Evaluator::switchStatement(ASTPtr t)
     }
     popID();
 }
-
+//=============================================================================
 //!
 //@Module IF-ELSEIF-ELSE Conditional Statements
 //@@Section FLOW
@@ -1129,7 +1143,7 @@ Evaluator::ifStatement(ASTPtr t)
     }
     popID();
 }
-
+//=============================================================================
 //!
 //@Module WHILE While Loop
 //@@Section FLOW
@@ -1190,7 +1204,7 @@ Evaluator::whileStatement(ASTPtr t)
     context->exitLoop();
     popID();
 }
-
+//=============================================================================
 //!
 //@Module FOR For Loop
 //@@Section FLOW
@@ -1239,14 +1253,171 @@ Evaluator::whileStatement(ASTPtr t)
 // In the third example, we pre-initialize the loop variable
 // with the values it is to take
 //!
+//=============================================================================
+template <class T>
+void
+ForStatementRowVectorComplexHelper(ASTPtr codeBlock, Class indexClass, ArrayOf& indexSet,
+    indexType elementCount, const std::string& indexVarName, Evaluator* eval)
+{
+    ArrayOf* ptrVariable = nullptr;
+    T* ptrValue = nullptr;
+    const T* data = (const T*)indexSet.getDataPointer();
+    Scope* scope = eval->getContext()->getCurrentScope();
+    if (!IsValidVariableName(indexVarName, true)) {
+        Error(_W("Valid variable name expected."));
+    }
+    for (indexType elementNumber = 0; elementNumber < elementCount; elementNumber++) {
+        if (scope->isLockedVariable(indexVarName)) {
+            Error(_W("Redefining permanent variable."));
+        }
+
+        if ((ptrVariable == nullptr) || (ptrVariable->getDataClass() != indexClass)
+            || (!ptrVariable->isScalar())) {
+            scope->insertVariable(indexVarName,
+                ArrayOf(indexClass, Dimensions(1, 1), ArrayOf::allocateArrayOf(indexClass, 1)));
+            ptrVariable = scope->lookupVariable(indexVarName);
+        }
+        ptrValue = (T*)ptrVariable->getReadWriteDataPointer();
+        if (!ptrValue) {
+            scope->insertVariable(indexVarName,
+                ArrayOf(indexClass, Dimensions(1, 1), ArrayOf::allocateArrayOf(indexClass, 1)));
+            ptrVariable = scope->lookupVariable(indexVarName);
+            ptrValue = (T*)ptrVariable->getReadWriteDataPointer();
+        }
+        if (ptrValue) {
+            ptrValue[0] = data[2 * elementNumber];
+            ptrValue[1] = data[2 * elementNumber + 1];
+        } else {
+            Error(_W("Cannot assign value."));
+        }
+        eval->block(codeBlock);
+        if (eval->getState() == NLS_STATE_RETURN || eval->getState() == NLS_STATE_ABORT
+            || eval->getState() == NLS_STATE_QUIT) {
+            break;
+        }
+        if (eval->getState() == NLS_STATE_CONTINUE) {
+            eval->resetState();
+        }
+        if (eval->getState() == NLS_STATE_BREAK) {
+            eval->resetState();
+            break;
+        }
+    }
+}
+//=============================================================================
+template <class T>
+void
+ForStatementRowVectorHelper(ASTPtr codeBlock, Class indexClass, ArrayOf& indexSet,
+    indexType elementCount, const std::string& indexVarName, Evaluator* eval)
+{
+    ArrayOf* ptrVariable = nullptr;
+    T* ptrValue = nullptr;
+    const T* data = (const T*)indexSet.getDataPointer();
+    Scope* scope = eval->getContext()->getCurrentScope();
+    if (!IsValidVariableName(indexVarName, true)) {
+        Error(_W("Valid variable name expected."));
+    }
+    for (indexType elementNumber = 0; elementNumber < elementCount; elementNumber++) {
+        if (scope->isLockedVariable(indexVarName)) {
+            Error(_W("Redefining permanent variable."));
+        }
+        if ((ptrVariable == nullptr) || (ptrVariable->getDataClass() != indexClass)
+            || (!ptrVariable->isScalar())) {
+            scope->insertVariable(indexVarName,
+                ArrayOf(indexClass, Dimensions(1, 1), ArrayOf::allocateArrayOf(indexClass, 1)));
+            ptrVariable = scope->lookupVariable(indexVarName);
+        }
+        ptrValue = (T*)ptrVariable->getReadWriteDataPointer();
+        if (!ptrValue) {
+            scope->insertVariable(indexVarName,
+                ArrayOf(indexClass, Dimensions(1, 1), ArrayOf::allocateArrayOf(indexClass, 1)));
+            ptrVariable = scope->lookupVariable(indexVarName);
+            ptrValue = (T*)ptrVariable->getReadWriteDataPointer();
+        }
+        if (ptrValue) {
+            ptrValue[0] = data[elementNumber];
+        } else {
+            Error(_W("Cannot assign value."));
+        }
+        eval->block(codeBlock);
+        if (eval->getState() == NLS_STATE_RETURN || eval->getState() == NLS_STATE_ABORT
+            || eval->getState() == NLS_STATE_QUIT) {
+            break;
+        }
+        if (eval->getState() == NLS_STATE_CONTINUE) {
+            eval->resetState();
+        }
+        if (eval->getState() == NLS_STATE_BREAK) {
+            eval->resetState();
+            break;
+        }
+    }
+}
+//=============================================================================
+static void
+ForStatemenRowVectorGenericHelper(ASTPtr codeBlock, ArrayOf& indexSet, indexType elementCount,
+    const std::string& indexVarName, Evaluator* eval)
+{
+    ArrayOf indexVar;
+    for (indexType elementNumber = 0; elementNumber < elementCount; elementNumber++) {
+        indexVar = indexSet.getValueAtIndex(elementNumber);
+        if (!eval->getContext()->insertVariable(indexVarName, indexVar)) {
+            if (IsValidVariableName(indexVarName, true)) {
+                Error(_W("Redefining permanent variable."));
+            }
+            Error(_W("Valid variable name expected."));
+        }
+        eval->block(codeBlock);
+        if (eval->getState() == NLS_STATE_RETURN || eval->getState() == NLS_STATE_ABORT
+            || eval->getState() == NLS_STATE_QUIT) {
+            break;
+        }
+        if (eval->getState() == NLS_STATE_CONTINUE) {
+            eval->resetState();
+        }
+        if (eval->getState() == NLS_STATE_BREAK) {
+            eval->resetState();
+            break;
+        }
+    }
+}
+//=============================================================================
+static void
+ForStatemenMatrixGenericHelper(ASTPtr codeBlock, ArrayOf& indexSet, indexType elementCount,
+    const std::string& indexVarName, Evaluator* eval)
+{
+    ArrayOf indexVar;
+    for (indexType elementNumber = 0; elementNumber < elementCount; elementNumber++) {
+        indexType tmp = indexSet.getRows();
+        ArrayOfVector m;
+        m.reserve(2);
+        m.push_back(ArrayOf::integerRangeConstructor(1, 1, tmp, false));
+        m.push_back(ArrayOf::doubleConstructor((double)(elementNumber + 1)));
+        indexVar = indexSet.getNDimSubset(m);
+        if (!eval->getContext()->insertVariable(indexVarName, indexVar)) {
+            if (IsValidVariableName(indexVarName, true)) {
+                Error(_W("Redefining permanent variable."));
+            }
+            Error(_W("Valid variable name expected."));
+        }
+        eval->block(codeBlock);
+        if (eval->getState() == NLS_STATE_RETURN || eval->getState() == NLS_STATE_ABORT
+            || eval->getState() == NLS_STATE_QUIT) {
+            break;
+        }
+        if (eval->getState() == NLS_STATE_CONTINUE) {
+            eval->resetState();
+        }
+        if (eval->getState() == NLS_STATE_BREAK) {
+            eval->resetState();
+            break;
+        }
+    }
+}
+//=============================================================================
 void
 Evaluator::forStatement(ASTPtr t)
 {
-    ASTPtr codeBlock;
-    ArrayOf indexSet;
-    ArrayOf indexNum;
-    std::string indexVarName;
-    ArrayOf indexVar;
     indexType elementCount = 0;
     if (t == nullptr) {
         resetState();
@@ -1256,57 +1427,93 @@ Evaluator::forStatement(ASTPtr t)
     pushID(t->context());
 
     /* Get the name of the indexing variable */
-    indexVarName = t->text;
+    std::string indexVarName = t->text;
     /* Evaluate the index set */
-    indexSet = expression(t->down);
+    ArrayOf indexSet = expression(t->down);
     if (indexSet.isEmpty()) {
         return;
     }
     /* Get the code block */
-    codeBlock = t->right;
+    ASTPtr codeBlock = t->right;
     bool isRowVector = indexSet.isRowVector();
-    bool isColumnVector = indexSet.isColumnVector();
     if (isRowVector) {
-        elementCount = indexSet.getLength();
-    } else if (isColumnVector) {
+        elementCount = indexSet.getElementCount();
+    } else if (indexSet.isColumnVector()) {
         elementCount = 1;
     } else {
-        elementCount = indexSet.getDimensions().getColumns();
+        elementCount = indexSet.getColumns();
     }
     context->enterLoop();
-
-    for (indexType elementNumber = 0; elementNumber < elementCount; elementNumber++) {
-        if (isRowVector) {
-            indexVar = indexSet.getValueAtIndex(elementNumber);
-        } else {
-            indexType tmp = indexSet.getDimensions().getRows();
-            ArrayOfVector m;
-            m.push_back(ArrayOf::integerRangeConstructor(1, 1, tmp, false));
-            m.push_back(ArrayOf::doubleConstructor((double)(elementNumber + 1)));
-            indexVar = indexSet.getNDimSubset(m);
+    if (isRowVector) {
+        switch (indexSet.getDataClass()) {
+        case NLS_LOGICAL: {
+            ForStatementRowVectorHelper<logical>(
+                codeBlock, NLS_LOGICAL, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_UINT8: {
+            ForStatementRowVectorHelper<uint8>(
+                codeBlock, NLS_UINT8, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_INT8: {
+            ForStatementRowVectorHelper<int8>(
+                codeBlock, NLS_INT8, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_UINT16: {
+            ForStatementRowVectorHelper<uint16>(
+                codeBlock, NLS_UINT16, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_INT16: {
+            ForStatementRowVectorHelper<int16>(
+                codeBlock, NLS_INT16, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_UINT32: {
+            ForStatementRowVectorHelper<uint32>(
+                codeBlock, NLS_UINT32, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_INT32: {
+            ForStatementRowVectorHelper<int32>(
+                codeBlock, NLS_INT32, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_UINT64: {
+            ForStatementRowVectorHelper<uint64>(
+                codeBlock, NLS_UINT64, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_INT64: {
+            ForStatementRowVectorHelper<int64>(
+                codeBlock, NLS_INT64, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_SINGLE: {
+            ForStatementRowVectorHelper<single>(
+                codeBlock, NLS_SINGLE, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_DOUBLE: {
+            ForStatementRowVectorHelper<double>(
+                codeBlock, NLS_DOUBLE, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_SCOMPLEX: {
+            ForStatementRowVectorComplexHelper<single>(
+                codeBlock, NLS_SCOMPLEX, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_DCOMPLEX: {
+            ForStatementRowVectorComplexHelper<double>(
+                codeBlock, NLS_DCOMPLEX, indexSet, elementCount, indexVarName, this);
+        } break;
+        case NLS_CHAR: {
+            ForStatementRowVectorHelper<charType>(
+                codeBlock, NLS_CHAR, indexSet, elementCount, indexVarName, this);
+        } break;
+        default: {
+            ForStatemenRowVectorGenericHelper(
+                codeBlock, indexSet, elementCount, indexVarName, this);
+        } break;
         }
-        bool bInserted = context->insertVariable(indexVarName, indexVar);
-        if (!bInserted) {
-            if (IsValidVariableName(indexVarName, true)) {
-                Error(_W("Redefining permanent variable."));
-            }
-            Error(_W("Valid variable name expected."));
-        }
-        block(codeBlock);
-        if (state == NLS_STATE_RETURN || state == NLS_STATE_ABORT || state == NLS_STATE_QUIT) {
-            break;
-        }
-        if (state == NLS_STATE_CONTINUE) {
-            resetState();
-        }
-        if (state == NLS_STATE_BREAK) {
-            resetState();
-            break;
-        }
+    } else {
+        ForStatemenMatrixGenericHelper(codeBlock, indexSet, elementCount, indexVarName, this);
     }
     context->exitLoop();
     popID();
 }
+//=============================================================================
 
 //!
 //@Module CONTINUE Continue Execution In Loop
@@ -1573,7 +1780,7 @@ Evaluator::debugCLI()
     }
     depth--;
 }
-
+//=============================================================================
 void
 Evaluator::handleDebug(int fullcontext)
 {
@@ -1625,7 +1832,38 @@ Evaluator::handleDebug(int fullcontext)
         }
     }
 }
-
+//=============================================================================
+void
+Evaluator::assignStatement(ASTPtr t, bool printIt)
+{
+    uint64 ticProfiling = Profiler::getInstance()->tic();
+    bool isHandle = false;
+    ArrayOf b = expression(t->right);
+    if (t->down != nullptr) {
+        b = assignExpression(t, b);
+        isHandle = b.isHandle();
+    }
+    std::string variableName = t->text;
+    if (!isHandle) {
+        bool bInserted = context->insertVariable(variableName, b);
+        if (!bInserted) {
+            if (IsValidVariableName(variableName, true)) {
+                Error(_W("Redefining permanent variable."));
+            }
+            Error(_W("Valid variable name expected."));
+        }
+    }
+    if (printIt) {
+        io->outputMessage(variableName + " =\n\n");
+        OverloadDisplay(this, b);
+    }
+    if (ticProfiling != 0) {
+        internalProfileFunction stack
+            = computeProfileStack(this, "assign", utf8_to_wstring(cstack.back().cname));
+        Profiler::getInstance()->toc(ticProfiling, stack);
+    }
+}
+//=============================================================================
 void
 Evaluator::statementType(ASTPtr t, bool printIt)
 {
@@ -1649,48 +1887,9 @@ Evaluator::statementType(ASTPtr t, bool printIt)
     if (t->isEmpty()) {
         /* Empty statement */
     } else if (t->opNum == (OP_ASSIGN)) {
-        uint64 ticProfiling = Profiler::getInstance()->tic();
-
-        if (t->down->down == nullptr) {
-            ArrayOf b(expression(t->down->right));
-            bool bInserted = context->insertVariable(t->down->text, b);
-            if (!bInserted) {
-                if (IsValidVariableName(t->down->text, true)) {
-                    Error(_W("Redefining permanent variable."));
-                }
-                Error(_W("Valid variable name expected."));
-            }
-            if (printIt) {
-                io->outputMessage(std::string(t->down->text) + " =\n\n");
-                OverloadDisplay(this, b);
-            }
-        } else {
-            ArrayOf expr(expression(t->down->right));
-            ArrayOf c(assignExpression(t->down, expr));
-            if (!c.isHandle()) {
-                bool bInserted = context->insertVariable(t->down->text, c);
-                if (!bInserted) {
-                    if (IsValidVariableName(t->down->text, true)) {
-                        Error(_W("Redefining permanent variable."));
-                    }
-                    Error(_W("Valid variable name expected."));
-                }
-                if (printIt) {
-                    io->outputMessage(std::string(t->down->text) + " =\n\n");
-                    OverloadDisplay(this, c);
-                }
-            }
-        }
-        if (ticProfiling != 0) {
-            internalProfileFunction stack
-                = computeProfileStack(this, "assign", utf8_to_wstring(cstack.back().cname));
-            Profiler::getInstance()->toc(ticProfiling, stack);
-        }
-
+        assignStatement(t->down, printIt);
     } else if (t->opNum == (OP_MULTICALL)) {
-
         multiFunctionCall(t->down, printIt);
-
     } else if (t->opNum == (OP_SCALL)) {
         ArrayOfVector m = specialFunctionCall(t->down, printIt);
         if (m.size() > 0) {
@@ -1810,7 +2009,7 @@ Evaluator::statementType(ASTPtr t, bool printIt)
     }
     popID();
 }
-
+//=============================================================================
 // Trapping at the statement level is much better! - two
 // problems... try/catch and multiline statements (i.e.,atell.m)
 // The try-catch one is easy, I think...  When a try occurs,
@@ -1824,8 +2023,6 @@ Evaluator::statementType(ASTPtr t, bool printIt)
 //    cfunc
 // end
 // this is represented in the parse tree as a single construct...
-//
-
 //
 void
 Evaluator::statement(ASTPtr t)
@@ -1843,7 +2040,7 @@ Evaluator::statement(ASTPtr t)
         throw;
     }
 }
-
+//=============================================================================
 void
 Evaluator::block(ASTPtr t)
 {
@@ -1879,7 +2076,7 @@ Evaluator::getContext()
 {
     return context;
 }
-
+//=============================================================================
 ArrayOf
 Evaluator::simpleSubindexExpression(ArrayOf& r, ASTPtr t)
 {
@@ -1950,7 +2147,7 @@ Evaluator::simpleSubindexExpression(ArrayOf& r, ASTPtr t)
     }
     return (ArrayOf::emptyConstructor());
 }
-
+//=============================================================================
 void
 Evaluator::simpleAssign(ArrayOf& r, ASTPtr t, ArrayOf& value)
 {
@@ -1958,7 +2155,7 @@ Evaluator::simpleAssign(ArrayOf& r, ASTPtr t, ArrayOf& value)
     vec.push_back(value);
     simpleAssign(r, t, vec);
 }
-
+//=============================================================================
 void
 Evaluator::simpleAssign(ArrayOf& r, ASTPtr t, ArrayOfVector& value)
 {
@@ -2052,7 +2249,7 @@ Evaluator::simpleAssign(ArrayOf& r, ASTPtr t, ArrayOfVector& value)
     }
     popID();
 }
-
+//=============================================================================
 indexType
 Evaluator::countLeftHandSides(ASTPtr t)
 {
@@ -2086,17 +2283,17 @@ Evaluator::countLeftHandSides(ASTPtr t)
         if (m.size() == 1) {
             // m[0] should have only one element...
             m[0].toOrdinalType();
-            if (m[0].getLength() > 1) {
+            if (m[0].getElementCount() > 1) {
                 Error(ERROR_PARENTHETICAL_EXPRESSION);
             }
             popID();
-            return (m[0].getLength());
+            return (m[0].getElementCount());
         } else {
             size_t i = 0;
             indexType outputCount = 1;
             while (i < m.size()) {
                 m[i].toOrdinalType();
-                outputCount *= m[i].getLength();
+                outputCount *= m[i].getElementCount();
                 i++;
             }
             if (outputCount > 1) {
@@ -2115,13 +2312,13 @@ Evaluator::countLeftHandSides(ASTPtr t)
             // m[0] should have only one element...
             m[0].toOrdinalType();
             popID();
-            return (m[0].getLength());
+            return (m[0].getElementCount());
         } else {
             size_t i = 0;
             indexType outputCount = 1;
             while (i < m.size()) {
                 m[i].toOrdinalType();
-                outputCount *= m[i].getLength();
+                outputCount *= m[i].getElementCount();
                 i++;
             }
             popID();
@@ -2130,12 +2327,12 @@ Evaluator::countLeftHandSides(ASTPtr t)
     }
     if (s->opNum == (OP_DOT)) {
         popID();
-        return lhs.getLength();
+        return lhs.getElementCount();
     }
     popID();
     return static_cast<indexType>(1);
 }
-
+//=============================================================================
 ArrayOf
 Evaluator::assignExpression(ASTPtr t, ArrayOf& val)
 {
@@ -2143,7 +2340,7 @@ Evaluator::assignExpression(ASTPtr t, ArrayOf& val)
     vec.push_back(val);
     return assignExpression(t, vec);
 }
-
+//=============================================================================
 // If we got this far, we must have at least one subindex
 ArrayOf
 Evaluator::assignExpression(ASTPtr t, ArrayOfVector& value)
@@ -2156,17 +2353,20 @@ Evaluator::assignExpression(ASTPtr t, ArrayOfVector& value)
         return retval;
     }
     // Get the variable in question
+    ArrayOf* var = context->lookupVariable(t->text);
     ArrayOf lhs;
-    bool bVarAlreadyExist = context->lookupVariable(t->text, lhs);
-    if (!bVarAlreadyExist) {
+    ArrayOf data;
+    if (var == nullptr) {
         lhs = ArrayOf::emptyConstructor();
+        data = lhs;
+    } else {
+        lhs.setValue(*var);
+        data.setValue(*var);
     }
     // Set up a stack
     ArrayOfVector stack;
     ASTPtrVector ref;
     ASTPtr s = t->down;
-    ArrayOf data;
-    data = lhs;
     // Subindex
     while (s->right != nullptr) {
         if (!data.isEmpty()) {
@@ -2203,7 +2403,7 @@ Evaluator::assignExpression(ASTPtr t, ArrayOfVector& value)
     popID();
     return lhs;
 }
-
+//=============================================================================
 ArrayOfVector
 Evaluator::specialFunctionCall(ASTPtr t, bool printIt)
 {
@@ -2241,7 +2441,7 @@ Evaluator::specialFunctionCall(ASTPtr t, bool printIt)
     popID();
     return m;
 }
-
+//=============================================================================
 void
 Evaluator::addBreakpoint(StackEntry& bp)
 {
@@ -2249,7 +2449,7 @@ Evaluator::addBreakpoint(StackEntry& bp)
     adjustBreakpoints();
     debugActive = true;
 }
-
+//=============================================================================
 void
 Evaluator::multiFunctionCall(ASTPtr t, bool printIt)
 {
@@ -2341,8 +2541,7 @@ Evaluator::multiFunctionCall(ASTPtr t, bool printIt)
     s = saveLHS;
     while ((s != nullptr) && (m.size() > 0)) {
         ArrayOf c(assignExpression(s->down, m));
-        bool bInserted = context->insertVariable(s->down->text, c);
-        if (!bInserted) {
+        if (!context->insertVariable(s->down->text, c)) {
             if (IsValidVariableName(s->down->text, true)) {
                 Error(_W("Redefining permanent variable."));
             }
@@ -2362,7 +2561,7 @@ Evaluator::multiFunctionCall(ASTPtr t, bool printIt)
     }
     popID();
 }
-
+//=============================================================================
 int
 getArgumentIndex(const stringVector& list, const std::string& t)
 {
@@ -2384,7 +2583,7 @@ getArgumentIndex(const stringVector& list, const std::string& t)
     }
     return -1;
 }
-
+//=============================================================================
 //!
 //@Module FUNCTION Function Declarations
 //@@Section FUNCTIONS
@@ -3096,28 +3295,23 @@ Evaluator::functionExpression(FunctionDef* funcDef, ASTPtr t, int narg_out, bool
                             Error(ERROR_MUST_HAVE_LVALUE);
                             return ArrayOfVector();
                         }
+                        std::string variableName = p->down->text;
+                        ArrayOf c;
                         if (p->down->down == nullptr && p->down->type == id_node) {
-                            bool bInserted = context->insertVariable(p->down->text, m[i]);
-                            if (!bInserted) {
-                                if (argTypeMap != nullptr) {
-                                    delete[] argTypeMap;
-                                    argTypeMap = nullptr;
-                                }
-                                if (IsValidVariableName(p->down->text, true)) {
-                                    Error(_W("Redefining permanent variable."));
-                                }
-                                Error(_W("Valid variable name expected."));
-                                return ArrayOfVector();
-                            }
+                            c = m[i];
                         } else {
-                            ArrayOf c(assignExpression(p->down, m[i]));
-                            bool bInserted = context->insertVariable(p->down->text, c);
-                            if (!bInserted) {
+                            c = assignExpression(p->down, m[i]);
+                        }
+                        ArrayOf* ptrVar = context->lookupVariable(variableName);
+                        if (ptrVar != nullptr) {
+                            ptrVar->setValue(c);
+                        } else {
+                            if (!context->insertVariable(variableName, c)) {
                                 if (argTypeMap != nullptr) {
                                     delete[] argTypeMap;
                                     argTypeMap = nullptr;
                                 }
-                                if (IsValidVariableName(p->down->text, true)) {
+                                if (IsValidVariableName(variableName, true)) {
                                     Error(_W("Redefining permanent variable."));
                                 }
                                 Error(_W("Valid variable name expected."));
@@ -3152,15 +3346,15 @@ Evaluator::functionExpression(FunctionDef* funcDef, ASTPtr t, int narg_out, bool
     }
     return n;
 }
-
+//=============================================================================
 int
 COST(int a, int b)
 {
     return (((a) >= (b)) ? ((a) - (b)) : 10000);
 }
-
+//=============================================================================
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
-
+//=============================================================================
 int
 GetClosestLineNumber(ASTPtr t, int lineno)
 {
@@ -3174,7 +3368,7 @@ GetClosestLineNumber(ASTPtr t, int lineno)
     int costthis = COST(retval, lineno);
     return (MIN(linedwn, MIN(linerght, costthis)));
 }
-
+//=============================================================================
 void
 Evaluator::listBreakpoints()
 {
@@ -3185,7 +3379,7 @@ Evaluator::listBreakpoints()
         io->outputMessage(buffer);
     }
 }
-
+//=============================================================================
 void
 Evaluator::deleteBreakpoint(int number)
 {
@@ -3197,7 +3391,7 @@ Evaluator::deleteBreakpoint(int number)
         Error(utf8_to_wstring(buffer));
     }
 }
-
+//=============================================================================
 bool
 Evaluator::adjustBreakpoint(StackEntry& bp, bool dbstep)
 {
@@ -3242,7 +3436,7 @@ Evaluator::adjustBreakpoint(StackEntry& bp, bool dbstep)
     }
     return true;
 }
-
+//=============================================================================
 void
 Evaluator::adjustBreakpoints()
 {
@@ -3260,7 +3454,7 @@ Evaluator::adjustBreakpoints()
         adjustBreakpoint(stepTrap, true);
     }
 }
-
+//=============================================================================
 stringVector
 Evaluator::getCallers(bool includeCurrent)
 {
@@ -3306,41 +3500,25 @@ Evaluator::getCallers(bool includeCurrent)
     }
     return callersName;
 }
-
-void
-Evaluator::pushDebug(const std::string& fname, const std::string& detail)
-{
-    cstack.push_back(StackEntry(fname, detail, 0));
-}
-
-void
-Evaluator::popDebug()
-{
-    if (!cstack.empty()) {
-        cstack.pop_back();
-    } else {
-        io->outputMessage("IDERROR\n");
-    }
-}
-
+//======================================================================
 void
 Evaluator::setInterface(Interface* _io)
 {
     io = _io;
 }
-
+//======================================================================
 Interface*
 Evaluator::getInterface()
 {
     return io;
 }
-
+//=============================================================================
 bool
 Evaluator::lookupFunction(const std::string& funcName, FuncPtr& val)
 {
     return context->lookupFunction(funcName, val);
 }
-
+//=============================================================================
 ArrayOf
 Evaluator::rhsExpressionSimple(ASTPtr t)
 {
@@ -3378,7 +3556,7 @@ Evaluator::rhsExpressionSimple(ASTPtr t)
     popID();
     return r;
 }
-
+//=============================================================================
 //!
 //@Module INDEXING Indexing Expressions
 //@@Section VARIABLES
@@ -3563,25 +3741,18 @@ ArrayOfVector
 Evaluator::rhsExpression(ASTPtr t)
 {
     ArrayOf r;
-    ArrayOf q;
-    ArrayOf n;
-    ArrayOf p;
     ArrayOfVector m;
     ArrayOfVector rv;
-    bool isVar;
-    bool isFun = false;
     Dimensions rhsDimensions;
     FunctionDef* funcDef = nullptr;
     pushID(t->context());
     // Try to satisfy the rhs expression with what functions we have already
     // loaded.
-    isVar = context->lookupVariable(t->text, r);
-    if (isVar) {
+    if (context->lookupVariable(t->text, r)) {
         if (r.isClassStruct()) {
             std::string className = r.getStructType();
             std::string extractionFunctionName = className + "_extraction";
-            isFun = lookupFunction(extractionFunctionName, funcDef);
-            if (isFun) {
+            if (lookupFunction(extractionFunctionName, funcDef)) {
                 std::vector<StackEntry> cstack = this->cstack;
                 m = functionExpression(funcDef, t, 1, false);
                 this->cstack = cstack;
@@ -3615,8 +3786,7 @@ Evaluator::rhsExpression(ASTPtr t)
             }
         }
     } else {
-        isFun = lookupFunction(t->text, funcDef);
-        if (isFun) {
+        if (lookupFunction(t->text, funcDef)) {
             if (funcDef->outputArgCount() == 0) {
                 Error(ERROR_WRONG_NUMBERS_OUTPUT_ARGS, utf8_to_wstring(funcDef->name));
             }
@@ -3662,11 +3832,9 @@ Evaluator::rhsExpression(ASTPtr t)
                     Error(_W("index expected."));
                 }
             } else if (m.size() == 1) {
-                q = r.getVectorSubset(m[0]);
-                r = q;
+                r = r.getVectorSubset(m[0]);
             } else {
-                q = r.getNDimSubset(m);
-                r = q;
+                r = r.getNDimSubset(m);
             }
         }
         if (t->opNum == (OP_BRACES)) {
@@ -3789,7 +3957,6 @@ Evaluator::Evaluator(Context* aContext, Interface* aInterface, int _engineMode)
     inStepMode = false;
     bpActive = false;
     clearStacks();
-    cstack.reserve(4096);
     commandLineArguments.clear();
     lineNumber = 0;
 }
@@ -4089,6 +4256,7 @@ Evaluator::buildPrompt()
 }
 //=============================================================================
 static bool doOnce = true;
+//=============================================================================
 void
 setNamedMutexNelsonReady()
 {

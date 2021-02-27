@@ -50,7 +50,7 @@ ArrayOf::deleteVectorSubset(ArrayOf& arg)
             indexType cols = getDimensionLength(1);
             void* cp = DeleteSparseMatrixVectorSubsetDynamicFunction(dp->dataClass, rows, cols,
                 dp->getData(), static_cast<const indexType*>(arg.getDataPointer()),
-                arg.getLength());
+                arg.getElementCount());
             Dimensions newdim;
             newdim[0] = rows;
             newdim[1] = cols;
@@ -58,7 +58,7 @@ ArrayOf::deleteVectorSubset(ArrayOf& arg)
             return;
         }
         // Next, build a deletion map.
-        indexType N = getLength();
+        indexType N = getElementCount();
         indexType i = 0;
         deletionMap = arg.getBinaryMap(N);
         // Now, we count up the number of elements that remain after deletion.
@@ -81,11 +81,11 @@ ArrayOf::deleteVectorSubset(ArrayOf& arg)
         delete[] deletionMap;
         deletionMap = nullptr;
         Dimensions newDim;
-        if (dp->dimensions.isScalar()) {
+        if (dp->isScalar()) {
             newDim.reset();
             newDim[0] = 1;
             newDim[1] = newSize;
-        } else if (dp->dimensions.isVector()) {
+        } else if (dp->isVector()) {
             newDim = dp->dimensions;
             if (dp->dimensions[0] != 1) {
                 newDim[0] = newSize;

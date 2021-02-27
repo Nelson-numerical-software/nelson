@@ -624,6 +624,14 @@ public:
     void
     statementType(ASTPtr t, bool printIt);
     /**
+     * assign statement
+     * a = 1
+     * or
+     * a(1, 1) = 1
+     */
+    void
+    assignStatement(ASTPtr t, bool printIt);
+    /**
      * The statement method simply screens out the need for the
      * printIt flag.  It also retrieves the statement context
      * for use in error reporting.  The AST looks like:
@@ -913,6 +921,9 @@ private:
 
     bool
     needToOverloadOperator(const ArrayOf& a);
+
+    void
+    pushStackEntry(const std::string& name, const std::string& detail, int id);
 };
 NLSINTERPRETER_IMPEXP void
 sigInterrupt(int arg);

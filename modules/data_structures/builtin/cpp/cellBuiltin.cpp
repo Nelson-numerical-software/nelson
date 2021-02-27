@@ -49,10 +49,10 @@ Nelson::DataStructuresGateway::cellBuiltin(int nLhs, const ArrayOfVector& argIn)
     if (argIn.size() == 1) {
         if (argIn[0].getDataClass() == NLS_STRING_ARRAY) {
             ArrayOf* elementsCell = static_cast<ArrayOf*>(ArrayOf::allocateArrayOf(
-                NLS_CELL_ARRAY, argIn[0].getDimensions().getElementCount(), stringVector(), false));
+                NLS_CELL_ARRAY, argIn[0].getElementCount(), stringVector(), false));
 
             auto* elementsStringArray = (ArrayOf*)argIn[0].getDataPointer();
-            ompIndexType elementCount = argIn[0].getDimensions().getElementCount();
+            ompIndexType elementCount = argIn[0].getElementCount();
 #if defined(_NLS_WITH_OPENMP)
 #pragma omp parallel for
 #endif
@@ -87,9 +87,9 @@ Nelson::DataStructuresGateway::cellBuiltin(int nLhs, const ArrayOfVector& argIn)
                     retval.push_back(c);
                 } else {
                     ArrayOf arg = argIn[0];
-                    Dimensions dims(arg.getLength());
+                    Dimensions dims(arg.getElementCount());
                     auto* dindex = (double*)arg.getDataPointer();
-                    for (indexType k = 0; k < arg.getLength(); k++) {
+                    for (indexType k = 0; k < arg.getElementCount(); k++) {
                         double _dIndex = dindex[k];
                         if (!std::isfinite(_dIndex)) {
                             Error(ERROR_WRONG_ARGUMENT_1_FINITE_VECTOR_INTEGER_VALUE_EXPECTED);

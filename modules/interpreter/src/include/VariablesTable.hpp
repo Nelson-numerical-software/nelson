@@ -46,6 +46,8 @@ public:
     ~VariablesTable();
     bool
     findVariable(const key_type& key, value_type& dest);
+    ArrayOf*
+    findVariable(const std::string& key);
     bool
     isVariable(const key_type& key);
     bool
