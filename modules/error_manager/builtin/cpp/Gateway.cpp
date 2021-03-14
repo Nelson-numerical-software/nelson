@@ -39,8 +39,8 @@ using namespace Nelson;
 //=============================================================================
 const std::wstring gatewayName = L"error_manager";
 //=============================================================================
-static const nlsGateway gateway[] = {
-    { "error", (void*)Nelson::ErrorManagerGateway::errorBuiltin, 0, 2, CPP_BUILTIN_WITH_EVALUATOR },
+static const nlsGateway gateway[] = { { "error", (void*)Nelson::ErrorManagerGateway::errorBuiltin,
+                                          0, 2, CPP_BUILTIN_WITH_EVALUATOR },
     { "warning", (void*)Nelson::ErrorManagerGateway::warningBuiltin, 1, -1,
         CPP_BUILTIN_WITH_EVALUATOR },
     { "lasterror", (void*)Nelson::ErrorManagerGateway::lasterrorBuiltin, 1, 1,
@@ -55,8 +55,7 @@ static const nlsGateway gateway[] = {
         CPP_BUILTIN_WITH_EVALUATOR },
     { "rethrow", (void*)Nelson::ErrorManagerGateway::rethrowBuiltin, 0, 1, CPP_BUILTIN },
     { "MException_fieldnames", (void*)Nelson::ErrorManagerGateway::MException_fieldnamesBuiltin, 1,
-        1, CPP_BUILTIN }
-};
+        1, CPP_BUILTIN } };
 //=============================================================================
 NLSGATEWAYFUNC(gateway)
 //=============================================================================
